@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Button, Tag, Avatar, Tooltip, Modal, InputNumber, Select, Space } from 'antd';
+import { Button, Tag, Avatar, Tooltip, Modal, InputNumber, Select, Space, Spin } from 'antd';
 import { ClockCircleOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SoundTwoTone, StopOutlined } from '@ant-design/icons';
 import './Hero.css';
 
@@ -218,6 +218,11 @@ const Hero = () => {
   const [textContent, setTextContent] = useState(heroSliderConfig.slides[0]);
   const [randomRightAvatars, setRandomRightAvatars] = useState(getRandomAvatars(3));
 
+  // Performance optimization states
+  const [preloadedVideos, setPreloadedVideos] = useState(new Set([0]));
+  const [videoLoading, setVideoLoading] = useState({});
+  const [isVisible, setIsVisible] = useState(true);
+
   // Modal states
   const [bidModalVisible, setBidModalVisible] = useState(false);
   const [bidAmount, setBidAmount] = useState(1);
@@ -227,6 +232,9 @@ const Hero = () => {
 
   const overlayRef = useRef(null);
   const cardRef = useRef(null);
+  const containerRef = useRef(null);
+  const videoRefs = useRef({});
+  const observerRef = useRef(null);
 
   // Предварительная загрузка аватаров для предотвращения мерцания
   useEffect(() => {
@@ -238,6 +246,93 @@ const Hero = () => {
     };
 
     preloadAvatars();
+  }, []);
+
+  // Video preloading function
+  const preloadVideo = useCallback((slideIndex) => {
+    if (preloadedVideos.has(slideIndex)) return;
+
+    const slide = heroSliderConfig.slides[slideIndex];
+    if (!slide) return;
+
+    setVideoLoading(prev => ({ ...prev, [slideIndex]: true }));
+
+    // Create a video element for preloading
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = slide.videoSrc;
+    video.muted = true;
+
+    video.onloadedmetadata = () => {
+      setVideoLoading(prev => ({ ...prev, [slideIndex]: false }));
+      setPreloadedVideos(prev => new Set([...prev, slideIndex]));
+    };
+
+    video.onerror = () => {
+      setVideoLoading(prev => ({ ...prev, [slideIndex]: false }));
+      setVideoErrors(prev => ({ ...prev, [slideIndex]: true }));
+    };
+  }, [preloadedVideos]);
+
+  // Preload current and next video
+  useEffect(() => {
+    preloadVideo(currentSlide);
+    const nextSlide = (currentSlide + 1) % heroSliderConfig.slides.length;
+    preloadVideo(nextSlide);
+  }, [currentSlide, preloadVideo]);
+
+  // Intersection Observer for performance optimization
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRef.current.observe(containerRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Control video playback based on visibility and current slide
+  useEffect(() => {
+    heroSliderConfig.slides.forEach((slide, index) => {
+      const videoElement = videoRefs.current[index];
+      if (!videoElement) return;
+
+      if (index === currentSlide && isVisible && isVideoPlaying) {
+        // Play current video
+        videoElement.play().catch(() => {
+          // Silently handle play promise rejection
+        });
+      } else {
+        // Pause inactive videos
+        videoElement.pause();
+      }
+    });
+  }, [currentSlide, isVisible, isVideoPlaying]);
+
+  // Cleanup videos on unmount
+  useEffect(() => {
+    const currentVideos = videoRefs.current;
+    return () => {
+      Object.values(currentVideos).forEach(video => {
+        if (video) {
+          video.pause();
+          video.src = '';
+          video.load();
+        }
+      });
+    };
   }, []);
 
 
@@ -275,17 +370,21 @@ const Hero = () => {
     setCurrentSlide(newSlideIndex);
   }, [textAnimating, targetSlide]);
 
+  // Use ref to avoid stale closure in useEffect
+  const handleSlideChangeRef = useRef(handleSlideChange);
+  handleSlideChangeRef.current = handleSlideChange;
+
   // Автопереключение слайдов
   useEffect(() => {
     if (!isVideoPlaying) return;
 
     const interval = setInterval(() => {
       const nextSlide = (targetSlide + 1) % heroSliderConfig.slides.length;
-      handleSlideChange(nextSlide);
+      handleSlideChangeRef.current(nextSlide);
     }, 5000); // Переключение каждые 5 секунд
 
     return () => clearInterval(interval);
-  }, [isVideoPlaying, targetSlide, textAnimating, handleSlideChange]);
+  }, [isVideoPlaying, targetSlide]); // Use ref to avoid dependency on handleSlideChange
 
   // Функции управления видео
   const handleMuteUnmute = () => {
@@ -346,21 +445,36 @@ const Hero = () => {
   };
 
   return (
-    <div id="hero-slider-container" className="hero-slider-container">
+    <div id="hero-slider-container" className="hero-slider-container" ref={containerRef}>
       <div className="hero-slider-wrapper">
         {/* Видео фон */}
         <div className="hero-video-background">
           {heroSliderConfig.slides.map((slide, index) => (
-            <video
-              key={slide.id}
-              src={videoErrors[slide.id] ? '/slider/video1_1.mp4' : slide.videoSrc}
-              className={`hero-video-slide ${index === currentSlide ? 'active' : ''}`}
-              autoPlay={isVideoPlaying}
-              loop
-              muted={isVideoMuted}
-              playsInline
-              onError={() => handleVideoError(slide.id)}
-            />
+            <div key={slide.id} className="video-slide-container">
+              {videoLoading[index] && (
+                <div className="video-loading-overlay">
+                  <Spin size="large" />
+                </div>
+              )}
+              <video
+                ref={(el) => (videoRefs.current[index] = el)}
+                src={videoErrors[slide.id] ? '/slider/video1_1.mp4' : slide.videoSrc}
+                className={`hero-video-slide ${index === currentSlide ? 'active' : ''}`}
+                autoPlay={false} // Controlled by useEffect
+                loop
+                muted={isVideoMuted}
+                playsInline
+                preload={preloadedVideos.has(index) ? 'metadata' : 'none'}
+                onError={() => handleVideoError(slide.id)}
+                onLoadedData={() => {
+                  // Video is ready, ensure it's in correct state
+                  const video = videoRefs.current[index];
+                  if (video && index === currentSlide && isVisible && isVideoPlaying) {
+                    video.play().catch(() => {});
+                  }
+                }}
+              />
+            </div>
           ))}
         </div>
 

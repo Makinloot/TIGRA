@@ -16,34 +16,120 @@ import {
   MoonOutlined,
   SunOutlined,
   BellOutlined,
-  LoginOutlined,
-  UserAddOutlined
+  MenuOutlined
 } from '@ant-design/icons';
 import NotificationModal from './NotificationModal';
+import ModalAuth from './ModalAuth';
+import ProfileModal from './ProfileModal';
 import { navigation } from '../mocks/_mockData';
+import { mockAuth } from '../mocks/_mockData';
 
 const { Header: AntHeader } = Layout;
 
 const Header = ({ isDark, onThemeToggle }) => {
   const [current, setCurrent] = useState('home');
   const [searchValue, setSearchValue] = useState('');
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
 
   const handleMenuClick = (e) => {
     setCurrent(e.key);
   };
 
-  const userMenuItems = [
-    {
-      key: 'login',
-      icon: <LoginOutlined />,
-      label: 'Login',
-    },
-    {
-      key: 'register',
-      icon: <UserAddOutlined />,
-      label: 'Register',
-    },
-  ];
+  const handleAuthModalOpen = () => {
+    setAuthModalVisible(true);
+    setAuthError(null);
+  };
+
+  const handleAuthModalClose = () => {
+    setAuthModalVisible(false);
+    setAuthError(null);
+    setAuthLoading(false);
+  };
+
+  const handleLogin = async (credentials) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real authentication API call
+      const result = await mockAuth.login(credentials);
+      console.log('Login successful:', result);
+      // TODO-FX: Handle successful login (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleRegister = async (userData) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real authentication API call
+      const result = await mockAuth.register(userData);
+      console.log('Registration successful:', result);
+      // TODO-FX: Handle successful registration (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSocialAuth = async (provider) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real social authentication API call
+      const result = await mockAuth.socialAuth(provider);
+      console.log('Social auth successful:', result);
+      // TODO-FX: Handle successful social auth (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleProfileModalOpen = () => {
+    setProfileModalVisible(true);
+  };
+
+  const handleProfileModalClose = () => {
+    setProfileModalVisible(false);
+  };
+
+  const handleMenuItemClick = (key) => {
+    console.log('ProfileModal menu item clicked:', key);
+    // TODO-FX: Implement navigation logic based on menu item key
+    // - my_bids: Navigate to bids page
+    // - watchlist: Navigate to watchlist page
+    // - won_vehicles: Navigate to won vehicles page
+    // - saved_searches: Navigate to saved searches page
+    // - track_shipments: Navigate to shipment tracking page
+    // - shipping_calculator: Navigate to calculator page
+    // - documents_center: Navigate to documents page
+    // - profile_settings: Navigate to profile settings page
+    // - payment_methods: Navigate to payment methods page
+    // - notifications: Navigate to notifications page
+  };
+
+  const handleRoleSwitch = (newRole) => {
+    console.log('User role switched to:', newRole);
+    // TODO-FX: Update user role in state and API
+  };
+
+  const handleLogout = () => {
+    console.log('User logged out');
+    // TODO-FX: Clear user session, redirect to login page
+  };
+
 
   return (
     <AntHeader
@@ -139,25 +225,45 @@ const Header = ({ isDark, onThemeToggle }) => {
           </Badge>
         </Dropdown>
 
-        {/* User Menu */}
-        <Dropdown
-          menu={{
-            items: userMenuItems,
-            onClick: ({ key }) => {
-              console.log('User action:', key);
-            },
-          }}
-          placement="bottomRight"
+        {/* Profile Modal Button */}
+        <Button
+          type="text"
+          icon={<MenuOutlined />}
+          style={{ border: 'none', color: isDark ? '#fff' : '#000' }}
+          title="Open Profile Menu"
+          onClick={handleProfileModalOpen}
+        />
+
+        {/* User Button */}
+        <Button
+          type="primary"
+          icon={<UserOutlined />}
+          style={{ borderRadius: '6px' }}
+          onClick={handleAuthModalOpen}
         >
-          <Button
-            type="primary"
-            icon={<UserOutlined />}
-            style={{ borderRadius: '6px' }}
-          >
-            Login
-          </Button>
-        </Dropdown>
+          Login
+        </Button>
       </Space>
+
+      {/* Authentication Modal */}
+      <ModalAuth
+        visible={authModalVisible}
+        onClose={handleAuthModalClose}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onSocialAuth={handleSocialAuth}
+        loading={authLoading}
+        error={authError}
+      />
+
+      {/* Profile Modal */}
+      <ProfileModal
+        visible={profileModalVisible}
+        onClose={handleProfileModalClose}
+        onMenuItemClick={handleMenuItemClick}
+        onRoleSwitch={handleRoleSwitch}
+        onLogout={handleLogout}
+      />
     </AntHeader>
   );
 };

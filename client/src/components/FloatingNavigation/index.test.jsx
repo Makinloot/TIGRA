@@ -35,6 +35,17 @@ Object.defineProperty(window, 'removeEventListener', {
   value: mockRemoveEventListener,
 });
 
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', {
+  value: mockLocalStorage,
+});
+
 describe('FloatingNavigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -43,6 +54,9 @@ describe('FloatingNavigation', () => {
       writable: true,
       value: 300,
     });
+    // Reset localStorage mocks
+    mockLocalStorage.getItem.mockReturnValue(null);
+    mockLocalStorage.setItem.mockClear();
   });
 
   afterEach(() => {
@@ -340,6 +354,7 @@ describe('FloatingNavigation', () => {
     expect(screen.getByTitle('Live Auctions (15)')).toBeInTheDocument();
     expect(screen.getByTitle('Latest News (8)')).toBeInTheDocument();
     expect(screen.getByTitle('Our Partners (12)')).toBeInTheDocument();
+    expect(screen.getByTitle('Shipment Map (12)')).toBeInTheDocument();
 
     // Check that count badges are rendered
     const navigationContainer = screen.getByTitle('Live Auctions (15)').closest('.floating-navigation');
@@ -366,6 +381,7 @@ describe('FloatingNavigation', () => {
     expect(screen.getByTitle('Live Auctions')).toBeInTheDocument(); // No count shown
     expect(screen.getByTitle('Latest News')).toBeInTheDocument(); // No count shown
     expect(screen.getByTitle('Our Partners (5)')).toBeInTheDocument(); // Count shown
+    expect(screen.getByTitle('Shipment Map')).toBeInTheDocument(); // No count shown
   });
 
   it('should handle empty contentCounts prop gracefully', () => {
@@ -380,6 +396,67 @@ describe('FloatingNavigation', () => {
     // Should render without counts
     expect(screen.getByTitle('Live Auctions')).toBeInTheDocument();
     expect(screen.getByTitle('Latest News')).toBeInTheDocument();
+    expect(screen.getByTitle('Shipment Map')).toBeInTheDocument();
+    expect(screen.getByTitle('Our Partners')).toBeInTheDocument();
+  });
+
+  it('should load menu hidden state from localStorage on initialization', () => {
+    mockLocalStorage.getItem.mockReturnValue('true'); // Menu was hidden
+
+    render(<FloatingNavigation contentCounts={{}} />);
+
+    // Should show compact view with show menu button
+    expect(screen.getByTitle('Show Menu')).toBeInTheDocument();
+    expect(screen.queryByTitle('Hero Slider')).not.toBeInTheDocument();
+  });
+
+  it('should save menu state to localStorage when toggled', () => {
+    mockLocalStorage.getItem.mockReturnValue('false'); // Menu starts visible
+
+    render(<FloatingNavigation contentCounts={{}} />);
+
+    // Initially should not be hidden
+    expect(mockLocalStorage.setItem).not.toHaveBeenCalledWith('floatingNavMenuHidden', 'true');
+
+    // Hide the menu
+    const hideButton = screen.getByTitle('Hide Menu');
+    fireEvent.click(hideButton);
+
+    // Should save hidden state
+    expect(mockLocalStorage.setItem).toHaveBeenCalledWith('floatingNavMenuHidden', 'true');
+  });
+
+  it('should handle localStorage errors gracefully', () => {
+    // Mock localStorage to throw error
+    mockLocalStorage.getItem.mockImplementation(() => {
+      throw new Error('localStorage not available');
+    });
+
+    // Should not crash, should use default state (false)
+    expect(() => {
+      render(<FloatingNavigation contentCounts={{}} />);
+    }).not.toThrow();
+
+    // Should still render normally
+    expect(screen.getByTitle('Hero Slider')).toBeInTheDocument();
+  });
+
+  it('should persist menu state across component re-mounts', () => {
+    mockLocalStorage.getItem.mockReturnValue('true'); // Menu was hidden
+
+    const { unmount } = render(<FloatingNavigation contentCounts={{}} />);
+
+    // Should be compact initially
+    expect(screen.getByTitle('Show Menu')).toBeInTheDocument();
+
+    unmount();
+
+    // Re-render with same localStorage state
+    render(<FloatingNavigation contentCounts={{}} />);
+
+    // Should still be compact
+    expect(screen.getByTitle('Show Menu')).toBeInTheDocument();
+    expect(screen.queryByTitle('Hero Slider')).not.toBeInTheDocument();
   });
 
   // TODO-FX: Add tests for responsive behavior when testing framework supports CSS media queries

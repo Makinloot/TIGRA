@@ -22,8 +22,17 @@ const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
 const FloatingNavigation = ({ contentCounts = {} }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
   const [activeSection, setActiveSection] = useState('');
-  const [isMenuHidden, setIsMenuHidden] = useState(false);
+  const [isMenuHidden, setIsMenuHidden] = useState(() => {
+    // Load saved state from localStorage
+    try {
+      const saved = localStorage.getItem('floatingNavMenuHidden');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
 
   // Define navigation items with their corresponding section IDs, icons, and content counts
   const navigationItems = useMemo(() => [
@@ -70,20 +79,6 @@ const FloatingNavigation = ({ contentCounts = {} }) => {
       count: contentCounts.featuredAuctions || 0
     },
     {
-      id: 'special-offers',
-      icon: <ThunderboltOutlined />,
-      label: t('special_offers'),
-      targetId: 'special-offers',
-      count: contentCounts.specialOffers || 0
-    },
-    {
-      id: 'ai-picks',
-      icon: <BulbOutlined />,
-      label: t('ai_picks'),
-      targetId: 'ai-picks',
-      count: contentCounts.aiPicks || 0
-    },
-    {
       id: 'news',
       icon: <ReadOutlined />,
       label: t('latest_news'),
@@ -94,14 +89,14 @@ const FloatingNavigation = ({ contentCounts = {} }) => {
       id: 'map',
       icon: <GlobalOutlined />,
       label: t('shipment_map'),
-      targetId: 'map-snapshot-section',
+      targetId: 'active-logistics-routes',
       count: contentCounts.shipmentRoutes || 0
     },
     {
       id: 'partners',
       icon: <TeamOutlined />,
       label: t('our_partners'),
-      targetId: 'partners-section',
+      targetId: 'logistics-partners-slider',
       count: contentCounts.partners || 0
     },
     {
@@ -122,11 +117,11 @@ const FloatingNavigation = ({ contentCounts = {} }) => {
         behavior: 'smooth'
       });
     } else {
-      // Scroll to specific section
+      // Scroll to top of specific section
       const element = document.getElementById(targetId);
       if (element) {
-        // Calculate offset for fixed header (64px header height + some padding)
-        const offset = 80;
+        // Smaller offset to position section at top of viewport (just account for header)
+        const offset = 20; // Reduced from 80 to position at top
         const elementPosition = element.offsetTop;
         const offsetPosition = elementPosition - offset;
 
@@ -142,8 +137,19 @@ const FloatingNavigation = ({ contentCounts = {} }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      // Show menu after scrolling past hero section
-      setIsVisible(scrollY > 200);
+      const shouldBeVisible = scrollY > 200;
+
+      if (shouldBeVisible !== shouldRender) {
+        if (shouldBeVisible) {
+          // Fade in
+          setShouldRender(true);
+          setTimeout(() => setIsVisible(true), 50);
+        } else {
+          // Fade out
+          setIsVisible(false);
+          setTimeout(() => setShouldRender(false), 300); // Match animation duration
+        }
+      }
 
       // Update active section based on scroll position
       const sections = navigationItems.map(item => item.targetId);
@@ -162,19 +168,36 @@ const FloatingNavigation = ({ contentCounts = {} }) => {
       setActiveSection(currentSection);
     };
 
+    // Check initial scroll position
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [navigationItems]);
+  }, [navigationItems]); // eslint-disable-line react-hooks/exhaustive-deps -- shouldRender intentionally omitted to prevent infinite loop
 
-  // Toggle menu visibility
+  // Save menu state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('floatingNavMenuHidden', JSON.stringify(isMenuHidden));
+    } catch (error) {
+      // Silently fail if localStorage is not available
+      console.warn('Unable to save floating navigation state:', error);
+    }
+  }, [isMenuHidden]);
+
+  // Toggle menu visibility with animation
   const toggleMenuVisibility = () => {
-    setIsMenuHidden(!isMenuHidden);
+    setIsVisible(false);
+    setTimeout(() => {
+      setIsMenuHidden(!isMenuHidden);
+      setIsVisible(true);
+    }, 150); // Match animation duration
   };
 
-  if (!isVisible) return null;
+  if (!shouldRender) return null;
 
   return (
-    <div className={`floating-navigation ${isMenuHidden ? 'compact' : ''}`}>
+    <div className={`floating-navigation ${isVisible ? 'visible' : ''} ${isMenuHidden ? 'compact' : ''}`}>
       {isMenuHidden ? (
         // Compact view: only show menu and scroll to top
         <>
@@ -243,8 +266,6 @@ FloatingNavigation.propTypes = {
     keyMetrics: PropTypes.number,
     auctions: PropTypes.number,
     featuredAuctions: PropTypes.number,
-    specialOffers: PropTypes.number,
-    aiPicks: PropTypes.number,
     newsArticles: PropTypes.number,
     shipmentRoutes: PropTypes.number,
     partners: PropTypes.number

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Typography, Button, Carousel } from 'antd';
 import PropTypes from 'prop-types';
-import AuctionCard from './AuctionCard';
+import AuctionCard from './AuctionCard'; // Keep old one for compatibility
+import AuctionCard2025 from './AuctionCard2025'; // New 2025 version
 import QuickViewModal from './QuickViewModal';
 
 const { Title, Text } = Typography;
@@ -44,19 +45,19 @@ const AuctionCardList = ({ auctions }) => {
     }, 1000);
   };
 
-  const handleQuickView = (auction) => {
-    setQuickViewAuction(auction);
-    setModalVisible(true);
-  };
-
   const handleAddToFavorites = (auctionId) => {
     console.log('Added to favorites:', auctionId);
     // TODO-FX: Implement favorites functionality
   };
 
-  const handleCompare = (cars) => {
-    console.log('Compare cars:', cars.map(car => car.id));
-    // TODO-FX: Implement compare functionality - this could navigate to a comparison page
+  const handlePlaceBid = (auctionId) => {
+    console.log('Place bid on auction:', auctionId);
+    // TODO-FX: Implement bid placement logic
+  };
+
+  const handleViewDetails = (auctionId) => {
+    console.log('View details for auction:', auctionId);
+    // TODO-FX: Navigate to auction details page
   };
 
   const handleModalClose = () => {
@@ -79,7 +80,7 @@ const AuctionCardList = ({ auctions }) => {
           </Text>
         </div>
 
-        {/* Responsive Grid/Carousel View - TODO-FX: Full-width responsive layout implemented */}
+        {/* Responsive Grid/Carousel View - Using new AuctionCard2025 */}
         {isDesktop ? (
           // Desktop: Grid layout (lg and above)
           <Row gutter={[16, 16]}>
@@ -90,11 +91,11 @@ const AuctionCardList = ({ auctions }) => {
                 xxl={4}  // Desktop: 5 cards per row (24/5 = 4.8, but we use 4 and adjust with Row gutter)
                 key={auction.id}
               >
-                <AuctionCard
+                <AuctionCard2025
                   auction={auction}
-                  onQuickView={handleQuickView}
-                  onAddToFavorites={handleAddToFavorites}
-                  onCompare={handleCompare}
+                  onPlaceBid={handlePlaceBid}
+                  onViewDetails={handleViewDetails}
+                  showExtraData={true}
                 />
               </Col>
             ))}
@@ -114,10 +115,11 @@ const AuctionCardList = ({ auctions }) => {
             >
               {displayedAuctions.map((auction) => (
                 <div key={auction.id} style={{ padding: '0 8px' }}>
-                  <AuctionCard
+                  <AuctionCard2025
                     auction={auction}
-                    onQuickView={handleQuickView}
-                    onAddToFavorites={handleAddToFavorites}
+                    onPlaceBid={handlePlaceBid}
+                    onViewDetails={handleViewDetails}
+                    showExtraData={true}
                   />
                 </div>
               ))}

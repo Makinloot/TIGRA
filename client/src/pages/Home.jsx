@@ -5,11 +5,8 @@ import { Helmet } from 'react-helmet-async';
 import {
   featuredAuctions,
   newsArticles,
-  shipmentRoutes,
-  partners,
-  specialOffers,
-  aiPicks,
-  keyMetrics
+  keyMetrics,
+  topAuctions
 } from '../mocks/_mockData';
 
 // Direct component imports for synchronous first-screen rendering
@@ -20,14 +17,15 @@ import HowItWorks from '../components/HowItWorks';
 import KeyMetrics from '../components/KeyMetrics';
 import AuctionCardList from '../components/AuctionCardList';
 import NewsSection from '../components/NewsSection';
-import MapSnapshot from '../components/MapSnapshot';
-import Partners from '../components/Partners';
+import ActiveLogisticsRoutes from '../components/ActiveLogisticsRoutes';
+import LogisticsPartnersSlider from '../components/LogisticsPartnersSlider';
 import StickyBar from '../components/StickyBar';
 import Footer from '../components/Footer';
 import ScrollProgressIndicator from '../components/ScrollProgressIndicator';
 import FloatingNavigation from '../components/FloatingNavigation';
+import FloatingAIAssistant from '../components/FloatingAIAssistant';
 import SectionRenderer from '../components/SectionRenderer';
-import { getAllSectionConfigs, getSectionConfig } from '../config/sectionConfigs';
+import { getAllSectionConfigs } from '../config/sectionConfigs';
 
 const { Content } = Layout;
 
@@ -35,20 +33,18 @@ const { Content } = Layout;
 // responsive grids (5 desktop, 2 tablet, 1 mobile), full-width sections, responsive modals
 const Home = ({ isDark, onThemeToggle, appData }) => {
   // Destructure data from props
-  const { topAuctions = [], keyMetrics: propKeyMetrics = [] } = appData;
+  const { topAuctions: propTopAuctions = [], keyMetrics: propKeyMetrics = [] } = appData;
 
   // Calculate content counts for floating navigation
   const contentCounts = {
     keyMetrics: propKeyMetrics.length || keyMetrics.length,
-    auctions: topAuctions.length,
+    auctions: propTopAuctions.length || topAuctions.length,
     featuredAuctions: featuredAuctions.length,
-    specialOffers: specialOffers.length,
-    aiPicks: aiPicks.length,
     newsArticles: newsArticles.length,
-    shipmentRoutes: shipmentRoutes.length,
-    activeLogisticsRoutes: 3, // 3 active containers
-    partners: partners.length
+    shipmentRoutes: 8, // Mock data - should be dynamic
+    partners: 8 // Mock data - should be dynamic
   };
+
   return (
     <>
       {/* Scroll Progress Indicator */}
@@ -56,6 +52,9 @@ const Home = ({ isDark, onThemeToggle, appData }) => {
 
       {/* Floating Navigation Menu */}
       <FloatingNavigation contentCounts={contentCounts} />
+
+      {/* Floating AI Assistant */}
+      <FloatingAIAssistant />
 
       {/* SEO Meta Tags */}
       <Helmet>
@@ -114,16 +113,6 @@ const Home = ({ isDark, onThemeToggle, appData }) => {
               case 'featured-auctions':
                 sectionData = featuredAuctions;
                 break;
-              case 'special-offers':
-                sectionData = specialOffers;
-                break;
-              case 'ai-picks':
-                sectionData = aiPicks;
-                break;
-              case 'active-logistics-routes':
-                // Split layout doesn't need data array, uses config data directly
-                sectionData = [];
-                break;
               default:
                 sectionData = [];
             }
@@ -139,13 +128,9 @@ const Home = ({ isDark, onThemeToggle, appData }) => {
 
           <NewsSection newsArticles={newsArticles} />
 
-          {/* Active Logistics Routes Section */}
-          <SectionRenderer
-            section={getSectionConfig('active-logistics-routes')}
-            data={[]} // Split layout uses config data directly
-          />
+          <ActiveLogisticsRoutes />
 
-          <Partners partners={partners} />
+          <LogisticsPartnersSlider />
         </Content>
 
         {/* Footer */}

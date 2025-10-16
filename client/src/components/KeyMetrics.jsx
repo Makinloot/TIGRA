@@ -1,8 +1,26 @@
 import React from 'react';
 import { Row, Col, Statistic, Card } from 'antd';
+import { CarOutlined, CheckCircleOutlined, TruckOutlined, DollarOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 
 const KeyMetrics = ({ keyMetrics }) => {
+  const getMetricIcon = (title) => {
+    const iconStyle = { fontSize: '32px', color: '#1890ff' };
+
+    switch (title) {
+      case 'Active Auctions':
+        return <DollarOutlined style={iconStyle} />;
+      case 'Vehicles Listed':
+        return <CarOutlined style={iconStyle} />;
+      case 'Delivered Vehicles':
+        return <CheckCircleOutlined style={{ ...iconStyle, color: '#52c41a' }} />;
+      case 'Partner Carriers':
+        return <TruckOutlined style={{ ...iconStyle, color: '#faad14' }} />;
+      default:
+        return <CarOutlined style={iconStyle} />;
+    }
+  };
+
   return (
     <div id="key-metrics-section" style={{ backgroundColor: 'white', padding: '40px 0' }} className="ultra-compact-section-spacing">
       <div className="full-width-section">
@@ -17,19 +35,50 @@ const KeyMetrics = ({ keyMetrics }) => {
                   border: '1px solid #f0f0f0',
                   transition: 'all 0.3s ease'
                 }}
-                styles={{ body: { padding: '16px' } }}
+                styles={{ body: { padding: '24px 16px' } }}
                 hoverable
               >
-                <Statistic
-                  title={metric.title}
-                  value={metric.value}
-                  valueStyle={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    color: '#1890ff'
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  {/* Metric Icon */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f5f5f5',
+                    transition: 'all 0.3s ease'
                   }}
-                  formatter={(value) => value.toLocaleString()}
-                />
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e6f7ff';
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f5f5f5';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  >
+                    {getMetricIcon(metric.title)}
+                  </div>
+
+                  {/* Metric Statistic */}
+                  <Statistic
+                    title={metric.title}
+                    value={metric.value}
+                    valueStyle={{
+                      fontSize: '28px',
+                      fontWeight: 'bold',
+                      color: '#1890ff'
+                    }}
+                    formatter={(value) => value.toLocaleString()}
+                  />
+                </div>
               </Card>
             </Col>
           ))}
