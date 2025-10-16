@@ -1,0 +1,14 @@
+/* Final implementation of the full-screen wrapper */
+.full-screen-loader-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Use a background that respects the current theme */
+  background-color: var(--ant-color-bg-container);
+  z-index: 9999;
+}

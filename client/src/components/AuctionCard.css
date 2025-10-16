@@ -1,0 +1,58 @@
+/* AuctionCard Component Styles */
+
+.auction-card-thumbnails {
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+.auction-card-thumbnail {
+  transition: all 0.2s ease;
+}
+
+.auction-card-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.auction-card-thumbnail.active {
+  border-color: #1890ff !important;
+}
+
+.auction-card-info-section {
+  padding: 16px 16px 8px 16px;
+}
+
+.auction-card-actions-section {
+  padding: 8px 16px 16px 16px;
+  border-top: 1px solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+.auction-card-primary-action {
+  padding: 0 16px 16px 16px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 576px) {
+  .auction-card-thumbnails {
+    padding: 8px;
+  }
+
+  .auction-card-thumbnail {
+    width: 50px !important;
+    height: 35px !important;
+  }
+
+  .auction-card-info-section {
+    padding: 12px 12px 6px 12px;
+  }
+
+  .auction-card-actions-section {
+    padding: 6px 12px 12px 12px;
+  }
+
+  .auction-card-primary-action {
+    padding: 0 12px 12px 12px;
+  }
+}
