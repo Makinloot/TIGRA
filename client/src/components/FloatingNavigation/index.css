@@ -1,0 +1,143 @@
+/* Floating Navigation Styles */
+.floating-navigation {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Hide on mobile screens smaller than 768px */
+@media (max-width: 767px) {
+  .floating-navigation {
+    display: none;
+  }
+}
+
+/* Adjust position on tablets (768px to 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .floating-navigation {
+    right: 15px;
+    gap: 6px;
+  }
+}
+
+/* Adjust position on smaller desktops (1024px to 1199px) */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .floating-navigation {
+    right: 18px;
+    gap: 7px;
+  }
+}
+
+/* Navigation button styles */
+.floating-nav-button {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  background-color: #fff !important;
+  border: 1px solid #d9d9d9 !important;
+  position: relative !important; /* Required for absolute positioned count badges */
+}
+
+.floating-nav-button:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.floating-nav-button.active {
+  background-color: #1890ff !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+.floating-nav-button.active:hover {
+  transform: scale(1) !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* Responsive button sizes */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .floating-nav-button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .floating-nav-button {
+    width: 46px !important;
+    height: 46px !important;
+  }
+}
+
+/* Show menu button (compact view) */
+.floating-nav-show-menu {
+  opacity: 0.7 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.floating-nav-show-menu:hover {
+  opacity: 1 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Content count badges */
+.floating-nav-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff4d4f;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.floating-nav-button.active .floating-nav-count {
+  background-color: white;
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+/* Compact view adjustments */
+.floating-navigation.compact {
+  /* Reduce gap in compact mode */
+  gap: 4px;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .floating-navigation.compact {
+    gap: 4px;
+  }
+
+  .floating-nav-count {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    top: -6px;
+    right: -6px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .floating-navigation.compact {
+    gap: 5px;
+  }
+}

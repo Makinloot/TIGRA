@@ -1,0 +1,246 @@
+#root {
+  width: 100vw;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* TODO-FX: Perfect full-width layout - root container uses 100vw width with min-width: 100%
+   and overflow-x: hidden to prevent horizontal scroll. All child components must scale within
+   viewport bounds and respect the responsive padding system.
+
+   TODO-FX: Future dynamic content adjustments:
+   - Monitor viewport width changes and adjust padding calculations dynamically
+   - Implement container query support for component-specific responsive behavior
+   - Add CSS custom properties for consistent spacing across components
+   - Consider fluid typography scaling based on viewport dimensions
+   - Evaluate performance impact of 100vw usage on mobile devices with dynamic viewports */
+
+/* TODO-FX: Responsive horizontal padding for full-width layout system
+   - Desktop/Tablet: 16px padding each side (content width: calc(100vw - 32px))
+   - Mobile: 8px padding each side (content width: calc(100vw - 16px))
+   - Ensures consistent spacing from screen edges across all breakpoints */
+.responsive-layout-padding {
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+/* Mobile: Reduce padding to 8px each side for smaller screens */
+@media (max-width: 767px) {
+  .responsive-layout-padding {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* TODO-FX: Header responsive padding for full-width layout
+   - Desktop/Tablet: 16px padding each side
+   - Mobile: 8px padding each side */
+.ant-layout-header {
+  padding: 0 16px !important;
+}
+
+@media (max-width: 767px) {
+  .ant-layout-header {
+    padding: 0 8px !important;
+  }
+}
+
+/* TODO-FX: Full-width section wrapper - ensures all main content sections
+   stretch to nearly full viewport width while maintaining responsive padding */
+.full-width-section {
+  width: 100%;
+  margin: 0;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+/* Mobile: Reduce section padding to 8px each side */
+@media (max-width: 767px) {
+  .full-width-section {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* TODO-FX: Uniform card styling - ensures all cards have consistent heights,
+   aspect ratios, and visual hierarchy across the application */
+.uniform-card {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  border: none;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.uniform-card-photo {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background-color: #f0f0f0;
+}
+
+.uniform-card-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.uniform-card-actions {
+  padding: 16px 20px 20px;
+  border-top: 1px solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+/* Mobile adjustments for uniform cards */
+@media (max-width: 576px) {
+  .uniform-card-content {
+    padding: 16px;
+  }
+
+  .uniform-card-actions {
+    padding: 12px 16px 16px;
+  }
+}
+
+/* TODO-FX: Consistent section spacing using modern design standards
+   - Desktop/Tablet: 80px vertical spacing between sections
+   - Mobile: 40px vertical spacing between sections for better mobile UX
+   - Ensures proper visual hierarchy and breathing room between content sections */
+.section-spacing {
+  padding: 80px 0;
+}
+
+/* Mobile: Reduce section spacing for better mobile UX */
+@media (max-width: 767px) {
+  .section-spacing {
+    padding: 40px 0;
+  }
+}
+
+/* TODO-FX: Compact section spacing for key metrics and other compact sections
+   - Desktop/Tablet: 60px vertical spacing
+   - Mobile: 30px vertical spacing for better mobile UX */
+.responsive-section-spacing {
+  padding: 60px 0;
+}
+
+/* Mobile: Reduce compact section spacing for better mobile UX */
+@media (max-width: 767px) {
+  .responsive-section-spacing {
+    padding: 30px 0;
+  }
+}
+
+/* TODO-FX: Ultra-compact section spacing for maximum space efficiency
+   - Desktop/Tablet: 40px vertical spacing
+   - Mobile: 20px vertical spacing for ultra-compact mobile UX */
+.ultra-compact-section-spacing {
+  padding: 40px 0;
+}
+
+/* Mobile: Ultra-compact spacing for mobile UX */
+@media (max-width: 767px) {
+  .ultra-compact-section-spacing {
+    padding: 20px 0;
+  }
+}
+
+/* TODO-FX: Responsive element spacing within sections
+   - Desktop/Tablet: 16px base spacing
+   - Mobile: 8px base spacing
+   - Applied to margins, gutters, and internal spacing elements */
+.responsive-spacing {
+  margin-bottom: 16px;
+}
+
+/* Mobile: Reduce internal spacing */
+@media (max-width: 767px) {
+  .responsive-spacing {
+    margin-bottom: 8px;
+  }
+}
+
+/* TODO-FX: Track Price dropdown modal styling - responsive width and max height
+   Desktop: 250px width, Tablet: 220px width, Mobile: 90vw width, Max height: 300px with scroll */
+.track-price-dropdown {
+  width: 250px;
+  max-width: 250px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* Tablet: Reduce width to 220px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .track-price-dropdown {
+    width: 220px;
+    max-width: 220px;
+  }
+}
+
+/* Mobile: Use 90vw width */
+@media (max-width: 767px) {
+  .track-price-dropdown {
+    width: 90vw;
+    max-width: 90vw;
+  }
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* TODO-FX: Fade-In Animation for Main Content after Lazy Loader hides */
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-content {
+  animation: fadein 0.6s ease-out forwards;
+  opacity: 0; /* Initially hidden */
+}
