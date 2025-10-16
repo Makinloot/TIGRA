@@ -77,19 +77,19 @@ const NewsSection = ({ newsArticles }) => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <EyeOutlined style={{ fontSize: '12px', color: '#fff' }} />
                         <Text style={{ fontSize: '11px', color: '#fff', fontWeight: '500' }}>
-                          {(article.views || 0).toLocaleString()}
+                          {article.views.toLocaleString()}
                         </Text>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <CommentOutlined style={{ fontSize: '12px', color: '#fff' }} />
                         <Text style={{ fontSize: '11px', color: '#fff', fontWeight: '500' }}>
-                          {article.comments || 0}
+                          {article.comments}
                         </Text>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <ShareAltOutlined style={{ fontSize: '12px', color: '#fff' }} />
                         <Text style={{ fontSize: '11px', color: '#fff', fontWeight: '500' }}>
-                          {article.shares || 0}
+                          {article.shares}
                         </Text>
                       </div>
                     </div>
@@ -135,7 +135,7 @@ const NewsSection = ({ newsArticles }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Avatar
                         size={24}
-                        src={article.avatar || 'https://via.placeholder.com/24x24?text=A'}
+                        src={article.avatar}
                         style={{ border: '1px solid #e9ecef' }}
                       />
                       <Text style={{ fontSize: '12px', color: '#999' }}>

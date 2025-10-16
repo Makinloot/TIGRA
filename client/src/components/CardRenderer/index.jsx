@@ -28,6 +28,21 @@ const { Title, Text } = Typography;
 const CardRenderer = ({ card, item }) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Safety check for card configuration
+  if (!card) {
+    return (
+      <div style={{
+        padding: '16px',
+        border: '1px solid #e9ecef',
+        borderRadius: '8px',
+        backgroundColor: 'white',
+        height: '100%'
+      }}>
+        <p>Card configuration missing</p>
+      </div>
+    );
+  }
+
   // TODO-FX: Replace with real API call.
   // API Endpoint: POST /api/actions/{actionType}
   // Expected Data: { success: boolean, message: string }
@@ -72,7 +87,7 @@ const CardRenderer = ({ card, item }) => {
         />
 
         {/* Overlay Badges */}
-        {card.overlay_badge && (
+        {card.overlay_badge && card.overlay_badge.text && (
           <div style={{
             position: 'absolute',
             top: '8px',
@@ -92,7 +107,7 @@ const CardRenderer = ({ card, item }) => {
         )}
 
         {/* Ribbon Badge */}
-        {card.ribbon && (
+        {card.ribbon && card.ribbon.text && (
           <div style={{
             position: 'absolute',
             top: '8px',
@@ -110,7 +125,7 @@ const CardRenderer = ({ card, item }) => {
         )}
 
         {/* AI Tag */}
-        {card.ai_tag && (
+        {card.ai_tag && card.ai_tag.text && (
           <div style={{
             position: 'absolute',
             top: '8px',
@@ -376,17 +391,17 @@ const CardRenderer = ({ card, item }) => {
   const cardStyle = {
     backgroundColor: card.style?.background || 'white',
     borderRadius: card.style?.rounded === '2xl' ? '16px' : '8px',
-    boxShadow: isHovered && card.style?.hover?.includes('shadow-2xl') ?
+    boxShadow: isHovered && card.style?.hover?.includes && card.style?.hover?.includes('shadow-2xl') ?
       '0 25px 50px -12px rgba(0, 0, 0, 0.25)' :
       card.style?.shadow === 'xl' ? '0 20px 25px -5px rgba(0, 0, 0, 0.1)' : '0 2px 8px rgba(0,0,0,0.08)',
     border: '1px solid #e9ecef',
     height: '100%',
     cursor: 'pointer',
     transition: card.style?.transition || 'all 0.3s ease',
-    transform: isHovered && card.style?.hover?.includes('translate-y-') ?
+    transform: isHovered && card.style?.hover?.includes && card.style?.hover?.includes('translate-y-') ?
       'translateY(-4px)' : 'none',
-    ...(card.style?.hover?.includes('scale-105') && isHovered ? { transform: 'scale(1.05)' } : {}),
-    ...(card.style?.hover?.includes('ring-2') && isHovered ? { boxShadow: '0 0 0 2px #ddd6fe, 0 2px 8px rgba(0,0,0,0.08)' } : {})
+    ...(card.style?.hover?.includes && card.style?.hover?.includes('scale-105') && isHovered ? { transform: 'scale(1.05)' } : {}),
+    ...(card.style?.hover?.includes && card.style?.hover?.includes('ring-2') && isHovered ? { boxShadow: '0 0 0 2px #ddd6fe, 0 2px 8px rgba(0,0,0,0.08)' } : {})
   };
 
   return (

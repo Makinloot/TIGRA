@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Row, Col, Carousel, Typography, Space, Empty } from 'antd';
 import CardRenderer from '../CardRenderer';
-import LogisticsMap from '../Map';
-import ContainerList from '../ContainerList';
+import AuctionCard2025 from '../AuctionCard2025';
+import ActiveLogisticsRoutes from '../ActiveLogisticsRoutes';
 
 // TODO-FX: Connect to i18n library.
 const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -11,125 +11,153 @@ const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 const { Title, Text } = Typography;
 
 const SectionRenderer = ({ section, data }) => {
-  const { layout, card, title, subtitle, id } = section;
+  const { layout, card, title, subtitle, id, type, component, visual_theme } = section;
 
   // TODO-FX: Replace with real API call.
   // API Endpoint: GET /api/sections/{id}
   // Expected Data: Array of items matching card.content structure
 
+  // Handler functions for AuctionCard2025
+  const handlePlaceBid = (auctionId) => {
+    console.log('Place bid on auction:', auctionId);
+    // TODO-FX: Implement bid placement logic
+  };
+
+  const handleViewDetails = (auctionId) => {
+    console.log('View details for auction:', auctionId);
+    // TODO-FX: Navigate to auction details page
+  };
+
   const renderGrid = () => (
-    <Row gutter={layout.gap || 12}>
+    <Row gutter={layout?.gap || 12}>
       {data.map((item) => (
         <Col
           key={item.id}
           xs={24}
-          sm={layout.columns?.sm ? 24 / layout.columns.sm : 24}
-          md={layout.columns?.md ? 24 / layout.columns.md : 12}
-          lg={layout.columns?.lg ? 24 / layout.columns.lg : 8}
-          xl={layout.columns?.xl ? 24 / layout.columns.xl : 6}
+          sm={layout?.columns?.sm ? 24 / layout.columns.sm : 24}
+          md={layout?.columns?.md ? 24 / layout.columns.md : 12}
+          lg={layout?.columns?.lg ? 24 / layout.columns.lg : 8}
+          xl={layout?.columns?.xl ? 24 / layout.columns.xl : 6}
         >
-          <CardRenderer card={card} item={item} />
+          {component === 'AuctionCard2025' ? (
+            <AuctionCard2025
+              auction={item}
+              onPlaceBid={handlePlaceBid}
+              onViewDetails={handleViewDetails}
+              showExtraData={id === 'ai-picks'}
+              visualTheme={visual_theme}
+              sectionId={id}
+            />
+          ) : (
+            <CardRenderer card={card} item={item} />
+          )}
         </Col>
       ))}
     </Row>
   );
 
-  const renderCarousel = () => (
-    <Carousel
-      dots={false}
-      slidesToShow={layout.columns?.xl || 4}
-      slidesToScroll={1}
-      autoplay
-      autoplaySpeed={4000}
-      responsive={[
-        {
-          breakpoint: 1200,
-          settings: {
-            slidesToShow: layout.columns?.lg || 3,
-            slidesToScroll: 1,
+  const renderCarousel = () => {
+    const autoplaySpeed = visual_theme?.layout?.speed === 'medium' ? 4000 :
+                         visual_theme?.layout?.speed === 'slow' ? 6000 :
+                         visual_theme?.layout?.speed === 'fast' ? 2500 : 4000;
+
+    return (
+      <Carousel
+        dots={false}
+        slidesToShow={layout?.columns?.xl || 4}
+        slidesToScroll={1}
+        autoplay={visual_theme?.layout?.autoplay !== false}
+        autoplaySpeed={autoplaySpeed}
+        responsive={[
+          {
+            breakpoint: 1200,
+            settings: {
+              slidesToShow: layout?.columns?.lg || 3,
+              slidesToScroll: 1,
+            }
+          },
+          {
+            breakpoint: 992,
+            settings: {
+              slidesToShow: layout?.columns?.md || 2,
+              slidesToScroll: 1,
+            }
+          },
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: layout?.columns?.sm || 1,
+              slidesToScroll: 1,
+            }
+          },
+          {
+            breakpoint: 576,
+            settings: {
+              slidesToShow: 1,
+              slidesToScroll: 1,
+              arrows: false
+            }
           }
-        },
-        {
-          breakpoint: 992,
-          settings: {
-            slidesToShow: layout.columns?.md || 2,
-            slidesToScroll: 1,
-          }
-        },
-        {
-          breakpoint: 768,
-          settings: {
-            slidesToShow: layout.columns?.sm || 1,
-            slidesToScroll: 1,
-          }
-        },
-        {
-          breakpoint: 576,
-          settings: {
-            slidesToShow: 1,
-            slidesToScroll: 1,
-            arrows: false
-          }
-        }
-      ]}
-    >
-      {data.map((item) => (
-        <div key={item.id} style={{ padding: '0 8px' }}>
-          <CardRenderer card={card} item={item} />
-        </div>
-      ))}
-    </Carousel>
-  );
+        ]}
+      >
+        {data.map((item) => (
+          <div key={item.id} style={{ padding: '0 8px' }}>
+            {component === 'AuctionCard2025' ? (
+              <AuctionCard2025
+                auction={item}
+                onPlaceBid={handlePlaceBid}
+                onViewDetails={handleViewDetails}
+                showExtraData={id === 'ai-picks'}
+                visualTheme={visual_theme}
+                sectionId={id}
+              />
+            ) : (
+              <CardRenderer card={card} item={item} />
+            )}
+          </div>
+        ))}
+      </Carousel>
+    );
+  };
 
   const renderMasonry = () => (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${layout.columns?.lg || 3}, 1fr)`,
-        gap: layout.gap || 12
+        gridTemplateColumns: `repeat(${layout?.columns?.lg || 3}, 1fr)`,
+        gap: layout?.gap || 12
       }}
       className="responsive-masonry-grid"
     >
       {data.map((item) => (
-        <CardRenderer key={item.id} card={card} item={item} />
+        component === 'AuctionCard2025' ? (
+          <AuctionCard2025
+            key={item.id}
+            auction={item}
+            onPlaceBid={handlePlaceBid}
+            onViewDetails={handleViewDetails}
+            showExtraData={true}
+            visualTheme={visual_theme}
+            sectionId={id}
+          />
+        ) : (
+          <CardRenderer key={item.id} card={card} item={item} />
+        )
       ))}
     </div>
   );
 
-  const renderSplit = () => {
-    const { left, right } = layout;
-
-    return (
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          {left.component === 'Map' && left.library === 'react-map-gl' && (
-            <LogisticsMap
-              routeDemo={left.data.route_demo}
-              style={left.style}
-            />
-          )}
-        </Col>
-        <Col xs={24} lg={12}>
-          {right.component === 'ContainerList' && (
-            <ContainerList
-              header={right.header}
-              cards={right.cards}
-              style={right.style}
-            />
-          )}
-        </Col>
-      </Row>
-    );
-  };
-
   const renderLayout = () => {
-    switch (layout.type) {
+    // Handle SectionMap type specially
+    if (type === 'SectionMap') {
+      return <ActiveLogisticsRoutes />;
+    }
+
+    switch (layout?.type || 'grid') {
       case 'carousel':
         return renderCarousel();
       case 'masonry':
         return renderMasonry();
-      case 'split':
-        return renderSplit();
       case 'grid':
       default:
         return renderGrid();
@@ -137,9 +165,11 @@ const SectionRenderer = ({ section, data }) => {
   };
 
   const sectionStyle = {
-    padding: layout.padding || 'py-10 px-6',
-    background: layout.background || 'white',
-    ...layout.style
+    padding: visual_theme?.layout?.padding || layout?.padding || 'py-10 px-6',
+    background: visual_theme?.palette?.background || layout?.background || 'white',
+    borderRadius: visual_theme?.layout?.rounded || layout?.rounded,
+    boxShadow: visual_theme?.layout?.shadow || layout?.shadow,
+    ...(layout?.style || {})
   };
 
   return (
@@ -166,7 +196,7 @@ const SectionRenderer = ({ section, data }) => {
         )}
 
         {/* Content */}
-        {layout.type === 'split' || (data && data.length > 0) ? (
+        {data && data.length > 0 ? (
           renderLayout()
         ) : (
           <Empty description={t('no_items_found')} />
@@ -181,15 +211,16 @@ SectionRenderer.propTypes = {
     id: PropTypes.string.isRequired,
     title: PropTypes.string,
     subtitle: PropTypes.string,
+    component: PropTypes.string,
     layout: PropTypes.shape({
-      type: PropTypes.oneOf(['grid', 'carousel', 'masonry', 'split']).isRequired,
+      type: PropTypes.oneOf(['grid', 'carousel', 'masonry']),
       columns: PropTypes.object,
       gap: PropTypes.number,
       padding: PropTypes.string,
       background: PropTypes.string,
       style: PropTypes.object
-    }).isRequired,
-    card: PropTypes.object.isRequired
+    }),
+    card: PropTypes.object
   }).isRequired,
   data: PropTypes.array.isRequired
 };

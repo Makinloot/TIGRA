@@ -26,6 +26,32 @@
   z-index: 1;
   border-radius: 0 !important;
   overflow: hidden;
+  will-change: transform;
+}
+
+/* Video Slide Container for Performance */
+.video-slide-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  will-change: transform, opacity;
+}
+
+/* Video Loading Overlay */
+.video-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  backdrop-filter: blur(5px);
 }
 
 .hero-video-slide {
@@ -36,14 +62,17 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transform: scale(1.1);
-  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1.1) translateZ(0); /* translateZ(0) forces hardware acceleration */
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   filter: brightness(0.8);
+  will-change: opacity, transform;
+  backface-visibility: hidden; /* Prevents flickering on some devices */
+  perspective: 1000px; /* Improves 3D transforms */
 }
 
 .hero-video-slide.active {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(1) translateZ(0);
 }
 
 /* Overlay Container with Enhanced Gradient */

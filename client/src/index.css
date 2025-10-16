@@ -31,6 +31,10 @@ html, body {
   box-sizing: border-box;
 }
 
+html {
+  scroll-padding: 5rem;
+}
+
 :root {
   --header-height: 64px; /* TODO-FX: Header height reduced for more compact UI design */
 }

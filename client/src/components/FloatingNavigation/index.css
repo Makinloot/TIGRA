@@ -8,6 +8,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  opacity: 0;
+  transform: translateY(-50%) translateX(20px);
+  transition: all 0.3s ease-in-out;
+}
+
+.floating-navigation.visible {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 /* Hide on mobile screens smaller than 768px */

@@ -1,0 +1,219 @@
+/* AuctionCard2025 Component Styles - 2025 Visual Trends */
+
+.auction-card-2025 {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pulse animation for LIVE badges */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Blink animation for ENDING SOON badges */
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0.7;
+  }
+}
+
+/* Hover effects for premium cards */
+.auction-card-2025:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient text effects for titles */
+.auction-card-2025 .ant-typography h4 {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced image hover effects */
+.auction-card-2025 img {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auction-card-2025:hover img {
+  filter: brightness(1.1) contrast(1.1) saturate(1.1);
+}
+
+/* Button hover glow effects */
+.auction-card-2025 .ant-btn-primary:hover {
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .auction-card-2025 {
+    margin: 0 8px;
+  }
+
+  .auction-card-2025 .ant-card-body {
+    padding: 12px !important;
+  }
+
+  .auction-card-2025 .ant-typography h4 {
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .auction-card-2025 {
+    margin: 0 4px;
+  }
+
+  .auction-card-2025 .ant-btn {
+    font-size: 12px;
+    height: 36px !important;
+  }
+
+  .auction-card-2025 .ant-btn-primary {
+    font-size: 12px;
+  }
+}
+
+/* Special Offers Section - Premium Promo Theme */
+.auction-card-special-offers {
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 2px solid rgba(249, 115, 22, 0.4);
+}
+
+.auction-card-special-offers:hover {
+  transform: scale(1.05) rotate(0.5deg);
+  box-shadow: 0 20px 40px rgba(249, 115, 22, 0.3);
+}
+
+/* AI Picks Section - Tech Theme */
+.auction-card-ai-picks {
+  background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+  border: 2px solid rgba(124, 58, 237, 0.3);
+}
+
+.auction-card-ai-picks:hover {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2), 0 20px 40px rgba(0,0,0,0.1);
+}
+
+/* Featured Auctions Section - Vibrant Energy Theme */
+.auction-card-featured-auctions {
+  background: white;
+}
+
+.auction-card-featured-auctions:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  filter: brightness(1.1);
+}
+
+/* Shine overlay effect for special offers */
+.auction-card-special-offers::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+  opacity: 0;
+  z-index: 1;
+}
+
+.auction-card-special-offers:hover::before {
+  opacity: 1;
+  animation: shine 0.8s ease-in-out;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* AI particles effect for AI picks */
+.auction-card-ai-picks::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+.auction-card-ai-picks::before {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 15px;
+  height: 15px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float 4s ease-in-out infinite reverse;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Bid notification animations */
+@keyframes slideInRight {
+  0% {
+    transform: translateY(-50%) translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(0) scale(0.95);
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .auction-card-2025 {
+    background-color: #1f2937;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .auction-card-2025 .ant-typography h4 {
+    background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

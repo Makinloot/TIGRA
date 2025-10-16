@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Menu, Badge } from 'antd';
 import {
@@ -8,11 +8,75 @@ import {
   UserOutlined,
   BellOutlined
 } from '@ant-design/icons';
+import ModalAuth from '../ModalAuth';
+import { mockAuth } from '../../mocks/_mockData';
 
 // TODO-FX: Connect to i18n library.
 const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
 const BottomMenu = ({ isDark, currentPage, onPageChange }) => {
+  const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
+
+  const handleAuthModalOpen = () => {
+    setAuthModalVisible(true);
+    setAuthError(null);
+  };
+
+  const handleAuthModalClose = () => {
+    setAuthModalVisible(false);
+    setAuthError(null);
+    setAuthLoading(false);
+  };
+
+  const handleLogin = async (credentials) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real authentication API call
+      const result = await mockAuth.login(credentials);
+      console.log('Login successful:', result);
+      // TODO-FX: Handle successful login (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleRegister = async (userData) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real authentication API call
+      const result = await mockAuth.register(userData);
+      console.log('Registration successful:', result);
+      // TODO-FX: Handle successful registration (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSocialAuth = async (provider) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      // TODO-FX: Replace with real social authentication API call
+      const result = await mockAuth.socialAuth(provider);
+      console.log('Social auth successful:', result);
+      // TODO-FX: Handle successful social auth (store token, update user state, redirect, etc.)
+      handleAuthModalClose();
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
   const menuItems = [
     {
       key: 'home',
@@ -65,7 +129,13 @@ const BottomMenu = ({ isDark, currentPage, onPageChange }) => {
         mode="horizontal"
         selectedKeys={[currentPage]}
         items={menuItems}
-        onClick={({ key }) => onPageChange && onPageChange(key)}
+        onClick={({ key }) => {
+          if (key === 'profile') {
+            handleAuthModalOpen();
+          } else {
+            onPageChange && onPageChange(key);
+          }
+        }}
         style={{
           flex: 1,
           justifyContent: 'space-around',
@@ -74,6 +144,17 @@ const BottomMenu = ({ isDark, currentPage, onPageChange }) => {
           maxWidth: '600px',
           margin: '0 auto',
         }}
+      />
+
+      {/* Authentication Modal */}
+      <ModalAuth
+        visible={authModalVisible}
+        onClose={handleAuthModalClose}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onSocialAuth={handleSocialAuth}
+        loading={authLoading}
+        error={authError}
       />
     </div>
   );
