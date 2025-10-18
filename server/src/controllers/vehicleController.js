@@ -16,15 +16,21 @@ let testData = [
     year: "2015",
     pickupDate: "18/10",
     deliveryDate: "18/10",
+    appointment: {
+      auction: true,
+      warehouse: true,
+    },
   },
 ];
 
 const getNumericId = (value) => {
+  // Treat both numeric and string IDs uniformly when calculating the next ID
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
 const generateVehicleId = () => {
+  // Next ID is derived from the current max to keep identifiers stable across restarts
   const numericIds = testData
     .map((vehicle) => getNumericId(vehicle.id))
     .filter((id) => id !== null);
@@ -46,6 +52,7 @@ function getAllVehicles(req, res) {
 function addVehicle(req, res) {
   console.log(req.body);
   try {
+    // Server owns ID generation to ensure uniqueness regardless of client input
     const newVehicle = {
       id: generateVehicleId(),
       ...req.body,
@@ -66,6 +73,7 @@ const decodeVinSafe = async (vin) => {
   if (!vin) return null;
 
   try {
+    // External VIN decoding is best-effort; failures are surfaced to caller
     const response = await axios.get(
       `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`
     );
@@ -85,14 +93,19 @@ const decodeVinSafe = async (vin) => {
 
 async function updateVehicle(req, res) {
   const { id: idParam } = req.params;
-  const { additionalVehicles: incomingAdditionalVehicles, ...flatUpdates } = req.body;
+  const { additionalVehicles: incomingAdditionalVehicles, ...flatUpdates } =
+    req.body;
 
   try {
     if (!idParam) {
-      return res.status(400).json({ message: "Vehicle ID parameter is required" });
+      return res
+        .status(400)
+        .json({ message: "Vehicle ID parameter is required" });
     }
 
-    const vehicleIndex = testData.findIndex((vehicle) => String(vehicle.id) === String(idParam));
+    const vehicleIndex = testData.findIndex(
+      (vehicle) => String(vehicle.id) === String(idParam)
+    );
 
     if (vehicleIndex === -1) {
       return res
@@ -101,6 +114,7 @@ async function updateVehicle(req, res) {
     }
 
     const existingVehicle = testData[vehicleIndex];
+    // Work on a copy so we can compute the final payload before committing
     const updatedVehicle = { ...existingVehicle };
     const updatedAdditionalVehicles = [];
 
@@ -142,6 +156,7 @@ async function updateVehicle(req, res) {
 
         const previousVin = existingFlatVin || existingAdditionalVin || "";
         const hasIncomingVin = normalizedIncomingVin !== undefined;
+        // Empty strings remove VINs, undefined leaves the prior value in place
         const finalVin = hasIncomingVin
           ? normalizedIncomingVin || ""
           : previousVin;
@@ -185,8 +200,10 @@ async function updateVehicle(req, res) {
         let decoded;
         try {
           if (hasIncomingVin && finalVin !== previousVin) {
+            // Primary change or explicit VIN swap -> decode for fresh vehicle details
             decoded = await decodeVinSafe(finalVin);
           } else if (!makeValue || !modelValue || !yearValue) {
+            // Fill missing vehicle metadata opportunistically
             decoded = await decodeVinSafe(finalVin);
           }
         } catch (decodeError) {
@@ -237,10 +254,12 @@ async function updateVehicle(req, res) {
         key.startsWith("model") ||
         key.startsWith("year")
       ) {
+        // VIN family fields are handled via the slot loop above
         return;
       }
 
       if (value === undefined) {
+        // Undefined removes a property so UI can clear fields explicitly
         delete updatedVehicle[key];
       } else {
         updatedVehicle[key] = value;
@@ -262,10 +281,14 @@ function deleteVehicle(req, res) {
 
   try {
     if (!idParam) {
-      return res.status(400).json({ message: "Vehicle ID parameter is required" });
+      return res
+        .status(400)
+        .json({ message: "Vehicle ID parameter is required" });
     }
 
-    const vehicleIndex = testData.findIndex((vehicle) => String(vehicle.id) === String(idParam));
+    const vehicleIndex = testData.findIndex(
+      (vehicle) => String(vehicle.id) === String(idParam)
+    );
 
     if (vehicleIndex === -1) {
       return res

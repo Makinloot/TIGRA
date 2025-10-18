@@ -147,6 +147,7 @@ const DispatchDashboard = () => {
   const [vinModalSubmitting, setVinModalSubmitting] = useState(false);
   const [vinModalSlots, setVinModalSlots] = useState([]);
   const [vinForm] = Form.useForm();
+  const [togglingAppointmentId, setTogglingAppointmentId] = useState(null);
 
   const handleDeleteDispatch = useMemo(
     () =>
@@ -158,12 +159,63 @@ const DispatchDashboard = () => {
     [t]
   );
 
+  const handleToggleAppointment = useCallback(
+    async (record, slotKey) => {
+      if (record?.id === undefined || record?.id === null) {
+        message.error(t("vehicle_id_is_required"));
+        return;
+      }
+
+      const recordIdString = String(record.id);
+      const currentAppointment = record.appointment ?? {};
+      const normalizedAppointment = {
+        auction: Boolean(currentAppointment.auction),
+        warehouse: Boolean(currentAppointment.warehouse),
+      };
+
+      const updatedAppointment = {
+        ...normalizedAppointment,
+        [slotKey]: !normalizedAppointment[slotKey],
+      };
+
+      setTogglingAppointmentId(recordIdString);
+
+      try {
+        const response = await axios.put(
+          `http://localhost:3000/vehicles/${record.id}`,
+          { appointment: updatedAppointment }
+        );
+
+        const updatedVehicle = response.data;
+
+        setDispatches((prev) =>
+          prev.map((item) =>
+            String(item.id) === recordIdString ? { ...item, ...updatedVehicle } : item
+          )
+        );
+        setFilteredDispatches((prev) =>
+          prev.map((item) =>
+            String(item.id) === recordIdString ? { ...item, ...updatedVehicle } : item
+          )
+        );
+
+        message.success(t("dispatch_updated_successfully"));
+      } catch (error) {
+        console.error("Failed to toggle appointment:", error);
+        message.error(t("failed_to_update_dispatch"));
+      } finally {
+        setTogglingAppointmentId(null);
+      }
+    },
+    [t]
+  );
+
   // Filter states
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateRange, setDateRange] = useState([]);
 
-  // Simulate API fetch
+  // Fetch vehicles from API
   useEffect(() => {
     const fetchDispatches = async () => {
       try {
@@ -887,6 +939,49 @@ const DispatchDashboard = () => {
       render: renderEditableCell("deliveryDate"),
     },
     {
+      title: t("appointment"),
+      dataIndex: "appointment",
+      key: "appointment",
+      render: (_, record) => {
+        const appointment = record.appointment ?? {};
+        const slots = [
+          { key: "auction", label: t("auction") },
+          { key: "warehouse", label: t("warehouse") },
+        ];
+
+        const tagsToRender = slots.filter(({ key }) => appointment[key] !== undefined);
+
+        if (!tagsToRender.length) {
+          return <span>-</span>;
+        }
+
+        const recordIdString = record.id !== undefined && record.id !== null ? String(record.id) : null;
+        const isToggling = recordIdString !== null && togglingAppointmentId === recordIdString;
+
+        return (
+          <Space size="small">
+            {tagsToRender.map(({ key, label }) => (
+              <Tag
+                key={`${record.id ?? record.vin ?? label}-${key}`}
+                style={{
+                  cursor: isToggling ? "not-allowed" : "pointer",
+                  opacity: isToggling ? 0.6 : 1,
+                }}
+                onClick={() => {
+                  if (!isToggling) {
+                    handleToggleAppointment(record, key);
+                  }
+                }}
+                color={appointment[key] ? "green" : "red"}
+              >
+                {label}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
       title: t("comment"),
       dataIndex: "comment",
       key: "comment",
@@ -1190,12 +1285,15 @@ const DispatchDashboard = () => {
             setVinModalSubmitting(true);
 
             try {
-              if (vinModalOriginalId === undefined || vinModalOriginalId === null) {
-              message.error(t("vehicle_id_is_required"));
-              return;
-            }
+              if (
+                vinModalOriginalId === undefined ||
+                vinModalOriginalId === null
+              ) {
+                message.error(t("vehicle_id_is_required"));
+                return;
+              }
 
-            const response = await axios.put(
+              const response = await axios.put(
                 `http://localhost:3000/vehicles/${vinModalOriginalId}`,
                 payload
               );

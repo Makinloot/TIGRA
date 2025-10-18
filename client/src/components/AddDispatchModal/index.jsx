@@ -193,6 +193,10 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         additionalVehicles,
         vehicles: normalizedVehicles,
         creationDate: moment().format("DD/MM/YYYY HH:mm"),
+        appointment: {
+          auction: false,
+          warehouse: false,
+        },
       };
 
       const response = await axios.post(
@@ -200,7 +204,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         finalData
       );
       const data = response.data;
-      // console.log("DATA FROM API", data);
+      console.log("DATA FROM API", data);
       message.success(t("dispatch_created_successfully"));
       onSuccess?.();
       onClose();
@@ -350,7 +354,9 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 <Form.Item
                   name="auction"
                   label={t("auction")}
-                  rules={[{ required: true, message: t("auction_is_required") }]}
+                  rules={[
+                    { required: true, message: t("auction_is_required") },
+                  ]}
                 >
                   <Select
                     placeholder={t("select_auction")}
