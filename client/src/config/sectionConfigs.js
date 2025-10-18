@@ -6,8 +6,8 @@ export const sectionConfigs = {
   sections: [
     {
       id: "featured-auctions",
-      title: "WILL FINISH SOON",
-      subtitle: "Live auctions ending soon — place your bids now",
+      titleKey: "sections.featuredAuctions.title",
+      subtitleKey: "sections.featuredAuctions.subtitle",
       purpose: "Главная витрина активных и популярных торгов, создающая ощущение срочности и динамики.",
       visual_theme: {
         tone: "vibrant-energy",

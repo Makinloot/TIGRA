@@ -10,24 +10,72 @@ import {
   ClockCircleOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons';
-import { footerConfig } from '../mocks/_mockData';
-import { t } from '../i18n';
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text, Link } = Typography;
-
-// TODO-FX: Connect to i18n library.
-const translate = (key) => t(key);
 
 // TODO-FX: Replace with real API call.
 // API Endpoint: GET /api/footer/config
 // Expected Data: Footer configuration with brand, navigation, resources, and contact sections
 
 const Footer = () => {
+
   const socialIconMap = {
     twitter: <TwitterOutlined />,
     linkedin: <LinkedinOutlined />,
     youtube: <YoutubeOutlined />
+  };
+
+  const footerConfig = {
+    brand: {
+      title: 'AutoMarketLogistic',
+      tagline: 'ჭკვიანი გლობალური ავტომობილების ვაჭრობისა და ლოგისტიკის პლატფორმა',
+      description: 'აკავშირებს გლობალურ მყიდველებს, გამყიდველებს და ტრანსპორტიორებს ერთ ჭკვიან ეკოსისტემაში.',
+      socialLinks: [
+        { icon: "twitter", url: "https://twitter.com/automarket", label: 'გამოგვყევით Twitter-ზე' },
+        { icon: "linkedin", url: "https://linkedin.com/company/automarket", label: 'დაუკავშირდით LinkedIn-ზე' },
+        { icon: "youtube", url: "https://youtube.com/@automarket", label: 'უყურეთ ჩვენს ვიდეოებს' }
+      ]
+    },
+    navigation: {
+      title: 'პლატფორმა',
+      links: [
+        { label: 'აუქციონები', url: "/auctions" },
+        { label: 'ლოგისტიკა', url: "/logistics" },
+        { label: 'CRM', url: "/crm" },
+        { label: 'AI ასისტენტი', url: "/ai-agent" },
+        { label: 'ჩვენ შესახებ', url: "/about" }
+      ]
+    },
+    resources: {
+      title: 'რესურსები',
+      links: [
+        { label: 'დახმარების ცენტრი', url: "/help" },
+        { label: 'დოკუმენტაცია', url: "/docs" },
+        { label: 'ბლოგი', url: "/blog" },
+        { label: 'კონფიდენციალობის პოლიტიკა', url: "/privacy" },
+        { label: 'მომსახურების პირობები', url: "/terms" }
+      ]
+    },
+    contact: {
+      title: 'კონტაქტი',
+      address: '100 SE 2nd St, Miami, FL 33131, USA',
+      phone: '+1 (305) 555-1023',
+      email: 'support@automarketlogistic.com',
+      hours: 'ორშ-პარ: 9:00-18:00 GMT+4',
+      cta: {
+        text: 'მიიღეთ ციტატა',
+        url: "/quote"
+      }
+    },
+    subfooter: {
+      copyright: '© 2025 AutoMarketLogistic. ყველა უფლება დაცულია.',
+      links: [
+        { label: 'საიტის რუკა', url: "/sitemap" },
+        { label: 'ხელმისაწვდომობა', url: "/accessibility" },
+        { label: 'ქუქი-ფაილები', url: "/cookies" }
+      ]
+    }
   };
 
   const renderBrandSection = () => (
@@ -82,7 +130,7 @@ const Footer = () => {
   const renderNavigationSection = () => (
     <div>
       <Title level={4} style={{ color: 'white', marginBottom: '20px' }}>
-        {translate('platform')}
+        {footerConfig.navigation.title}
       </Title>
       <Space direction="vertical" size="small">
         {footerConfig.navigation.links.map((link) => (
@@ -110,7 +158,7 @@ const Footer = () => {
   const renderResourcesSection = () => (
     <div>
       <Title level={4} style={{ color: 'white', marginBottom: '20px' }}>
-        {translate('resources')}
+        {footerConfig.resources.title}
       </Title>
       <Space direction="vertical" size="small">
         {footerConfig.resources.links.map((link) => (
@@ -138,7 +186,7 @@ const Footer = () => {
   const renderContactSection = () => (
     <div>
       <Title level={4} style={{ color: 'white', marginBottom: '20px' }}>
-        {translate('contact')}
+        {footerConfig.contact.title}
       </Title>
       <Space direction="vertical" size="small" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
@@ -185,7 +233,7 @@ const Footer = () => {
           e.target.style.borderColor = '#2563eb';
         }}
       >
-        {translate('get_a_quote')}
+        {footerConfig.contact.cta.text}
       </Button>
     </div>
   );

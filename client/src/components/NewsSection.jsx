@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Row, Col, Card, Typography, Button, Tag, Avatar } from 'antd';
 import { CalendarOutlined, ReadOutlined, ArrowRightOutlined, EyeOutlined, CommentOutlined, ShareAltOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text, Paragraph } = Typography;
 const { Meta } = Card;
 
 const NewsSection = ({ newsArticles }) => {
+  const { t } = useTranslation();
   const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
@@ -15,10 +17,10 @@ const NewsSection = ({ newsArticles }) => {
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <Title level={2} style={{ marginBottom: '16px' }}>
             <ReadOutlined style={{ color: '#1890ff', marginRight: '12px' }} />
-            Latest News & Updates
+            {t('news.title')}
           </Title>
           <Text style={{ fontSize: '16px', color: '#666' }}>
-            Stay informed with the latest automotive auction news and industry insights
+            {t('news.subtitle')}
           </Text>
         </div>
 
@@ -116,7 +118,7 @@ const NewsSection = ({ newsArticles }) => {
                     fontSize: '18px',
                     lineHeight: 1.3
                   }}>
-                    {article?.title || 'Untitled Article'}
+                    {article?.title || t('news.untitledArticle')}
                   </Title>
 
                   <Paragraph
@@ -139,7 +141,7 @@ const NewsSection = ({ newsArticles }) => {
                         style={{ border: '1px solid #e9ecef' }}
                       />
                       <Text style={{ fontSize: '12px', color: '#999' }}>
-                        By {article?.author || 'Unknown Author'}
+                        By {article?.author || t('news.unknownAuthor')}
                       </Text>
                     </div>
                     <Button
@@ -151,7 +153,7 @@ const NewsSection = ({ newsArticles }) => {
                         console.log('Read full article:', article?.id);
                       }}
                     >
-                      Read More
+                      {t('news.readMore')}
                       <ArrowRightOutlined style={{ marginLeft: '4px' }} />
                     </Button>
                   </div>
@@ -168,7 +170,7 @@ const NewsSection = ({ newsArticles }) => {
             style={{ padding: '0 32px', height: '48px' }}
             onClick={() => console.log('View all news')}
           >
-            View All News & Updates
+            {t('news.viewAll')}
           </Button>
         </div>
       </div>

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button, Tag, Avatar, Tooltip, Modal, InputNumber, Select, Space, Spin } from 'antd';
 import { ClockCircleOutlined, PlayCircleOutlined, PauseCircleOutlined, SoundOutlined, SoundTwoTone, StopOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import './Hero.css';
 
 // List of all available avatars
@@ -64,151 +65,145 @@ const getRandomAvatars = (count) => {
 };
 
 // JSON-конфиг слайдера
-const heroSliderConfig = {
-  slides: [
-    {
-      id: 1,
-      videoSrc: "/slider/video1_1.mp4",
-      autoplay: true,
-      loop: true,
-      muted: false,
-      overlay: {
-        leftText: {
-          title: "Тысячи автомобилей ждут тебя",
-          subtitle: "Участвуй в Live Auction!"
-        },
-        rightBlock: {
-          carModel: "2022 Tesla Model 3",
-          price: "$42,500",
-          avatars: ["/slider/avatars/0450249b131eec36dc8333b7cf847bc4.webp", "/slider/avatars/06d29f74c2f85239efe3f9ade1b96da7.webp"],
-          participantsCount: 23
-        },
-        animation: {
-          exit: {
-            leftText: "translateX(-100%)",
-            rightBlock: "translateX(100%)",
-            duration_ms: 800,
-            timingFunction: "ease-in-out",
-            textChangeAfterExit: true
-          }
-        },
-        ctaButtons: [
-          {
-            text: "Join Live Auction",
-            action: "openBidModal",
-            modal: {
-              question: "How much would you like to bid?",
-              inputType: "number"
-            }
-          }
-        ]
-      }
-    },
-    {
-      id: 2,
-      videoSrc: "/slider/video1_2.mp4",
-      autoplay: true,
-      loop: true,
-      muted: false,
-      overlay: {
-        leftText: {
-          title: "Участвуй в торгах в реальном времени",
-          subtitle: "Ставь, следи и выигрывай!"
-        },
-        rightBlock: {
-          carModel: "2021 BMW X5 xDrive40i",
-          price: "$67,500",
-          avatars: ["/slider/avatars/098d5b19a0870d95bee0cdbcef632be1.webp", "/slider/avatars/112413f070536d15170606f2d00aa15d.webp"],
-          participantsCount: 15
-        },
-        animation: {
-          exit: {
-            leftText: "translateX(-100%)",
-            rightBlock: "translateX(100%)",
-            duration_ms: 800,
-            timingFunction: "ease-in-out",
-            textChangeAfterExit: true
-          }
-        },
-        ctaButtons: [
-          {
-            text: "Join Live Auction",
-            action: "openBidModal",
-            modal: {
-              question: "How much would you like to bid?",
-              inputType: "number"
-            }
-          }
-        ]
-      }
-    },
-    {
-      id: 3,
-      videoSrc: "/slider/video1_3.mp4",
-      autoplay: true,
-      loop: true,
-      muted: false,
-      overlay: {
-        leftText: {
-          title: "Найди свой идеальный автомобиль",
-          subtitle: "По VIN, фильтруй и сортируй по своим приоритетам"
-        },
-        rightBlock: {
-          carModel: "2020 Audi Q7",
-          price: "$59,900",
-          avatars: ["/slider/avatars/119d9abaee7a1e987571f0fe776bd1a5.webp", "/slider/avatars/1a270860bac2c66b434968a3047822e3.webp"],
-          participantsCount: 12
-        },
-        animation: {
-          exit: {
-            leftText: "translateX(-100%)",
-            rightBlock: "translateX(100%)",
-            duration_ms: 800,
-            timingFunction: "ease-in-out",
-            textChangeAfterExit: true
-          }
-        },
-        ctaButtons: [
-          {
-            text: "Join Live Auction",
-            action: "openBidModal",
-            modal: {
-              question: "How much would you like to bid?",
-              inputType: "number"
-            }
-          }
-        ]
-      }
-    }
-  ],
-  navigationDots: {
-    shape: "circular",
-    position: "bottom center",
-    interactive: true
-  },
-  videoControls: {
-    enabled: true,
-    muteUnmute: true,
-    stopSlider: {
-      enabled: true,
-      maxHours: 24,
-      modalQuestion: "На сколько часов отключить слайдер?"
-    }
-  },
-  responsive: {
-    desktop: {
-      showOverlayText: true
-    },
-    mobile: {
-      showOverlayText: true,
-      stickyCTA: true
-    }
-  }
-};
 
 
 
 const Hero = () => {
+  const { t } = useTranslation();
+
+  // Memoized translated hero config
+  const heroSliderConfig = useMemo(() => ({
+    slides: [
+      {
+        id: 1,
+        videoSrc: "/slider/video1_1.mp4",
+        autoplay: true,
+        loop: true,
+        muted: false,
+        overlay: {
+          leftText: {
+            title: t('hero.slide1.title'),
+            subtitle: t('hero.slide1.subtitle')
+          },
+          rightBlock: {
+            carModel: t('hero.slide1.carModel'),
+            price: "$42,500",
+            avatars: ["/slider/avatars/0450249b131eec36dc8333b7cf847bc4.webp", "/slider/avatars/06d29f74c2f85239efe3f9ade1b96da7.webp"],
+            participantsCount: 23
+          },
+          animation: {
+            exit: {
+              leftText: "translateX(-100%)",
+              rightBlock: "translateX(100%)",
+              duration_ms: 800,
+              timingFunction: "ease-in-out",
+              textChangeAfterExit: true
+            }
+          },
+          ctaButtons: [
+            {
+              text: t('hero.slide1.joinLiveAuction'),
+              action: "openBidModal",
+              modal: {
+                question: t('hero.slide1.bidQuestion'),
+                inputType: "number"
+              }
+            }
+          ]
+        }
+      },
+      {
+        id: 2,
+        videoSrc: "/slider/video1_2.mp4",
+        autoplay: true,
+        loop: true,
+        muted: false,
+        overlay: {
+          leftText: {
+            title: t('hero.slide2.title'),
+            subtitle: t('hero.slide2.subtitle')
+          },
+          rightBlock: {
+            carModel: t('hero.slide2.carModel'),
+            price: "$35,800",
+            avatars: ["/slider/avatars/098d5b19a0870d95bee0cdbcef632be1.webp", "/slider/avatars/112413f070536d15170606f2d00aa15d.webp"],
+            participantsCount: 18
+          },
+          animation: {
+            exit: {
+              leftText: "translateX(-100%)",
+              rightBlock: "translateX(100%)",
+              duration_ms: 800,
+              timingFunction: "ease-in-out",
+              textChangeAfterExit: true
+            }
+          },
+          ctaButtons: [
+            {
+              text: t('hero.slide2.joinLiveAuction'),
+              action: "openBidModal",
+              modal: {
+                question: t('hero.slide2.bidQuestion'),
+                inputType: "number"
+              }
+            }
+          ]
+        }
+      },
+      {
+        id: 3,
+        videoSrc: "/slider/video1_3.mp4",
+        autoplay: true,
+        loop: true,
+        muted: false,
+        overlay: {
+          leftText: {
+            title: t('hero.slide3.title'),
+            subtitle: t('hero.slide3.subtitle')
+          },
+          rightBlock: {
+            carModel: t('hero.slide3.carModel'),
+            price: "$48,200",
+            avatars: ["/slider/avatars/1a270860bac2c66b434968a3047822e3.webp", "/slider/avatars/1bab427466457e745328f6eb8fa227e1.webp"],
+            participantsCount: 31
+          },
+          animation: {
+            exit: {
+              leftText: "translateX(-100%)",
+              rightBlock: "translateX(100%)",
+              duration_ms: 800,
+              timingFunction: "ease-in-out",
+              textChangeAfterExit: true
+            }
+          },
+          ctaButtons: [
+            {
+              text: t('hero.slide3.joinLiveAuction'),
+              action: "openBidModal",
+              modal: {
+                question: t('hero.slide3.bidQuestion'),
+                inputType: "number"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    videoControls: {
+      enabled: true,
+      muteUnmute: {
+        enabled: true,
+        tooltip: t('hero.videoControls.muteUnmute')
+      },
+      stopSlider: {
+        enabled: true,
+        stopText: t('hero.videoControls.stopSlider.stop'),
+        resumeText: t('hero.videoControls.stopSlider.resume'),
+        modalQuestion: t('hero.videoControls.stopSlider.question')
+      }
+    }
+  }), [t]);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [targetSlide, setTargetSlide] = useState(0);
   const [videoErrors, setVideoErrors] = useState({});
@@ -272,14 +267,14 @@ const Hero = () => {
       setVideoLoading(prev => ({ ...prev, [slideIndex]: false }));
       setVideoErrors(prev => ({ ...prev, [slideIndex]: true }));
     };
-  }, [preloadedVideos]);
+  }, [preloadedVideos, heroSliderConfig]);
 
   // Preload current and next video
   useEffect(() => {
     preloadVideo(currentSlide);
     const nextSlide = (currentSlide + 1) % heroSliderConfig.slides.length;
     preloadVideo(nextSlide);
-  }, [currentSlide, preloadVideo]);
+  }, [currentSlide, preloadVideo, heroSliderConfig]);
 
   // Intersection Observer for performance optimization
   useEffect(() => {
@@ -305,6 +300,8 @@ const Hero = () => {
 
   // Control video playback based on visibility and current slide
   useEffect(() => {
+    if (!isVisible) return;
+
     heroSliderConfig.slides.forEach((slide, index) => {
       const videoElement = videoRefs.current[index];
       if (!videoElement) return;
@@ -319,7 +316,7 @@ const Hero = () => {
         videoElement.pause();
       }
     });
-  }, [currentSlide, isVisible, isVideoPlaying]);
+  }, [currentSlide, isVisible, isVideoPlaying, heroSliderConfig]);
 
   // Cleanup videos on unmount
   useEffect(() => {
@@ -368,7 +365,7 @@ const Hero = () => {
 
     // Меняем видео слайд
     setCurrentSlide(newSlideIndex);
-  }, [textAnimating, targetSlide]);
+  }, [textAnimating, targetSlide, heroSliderConfig]);
 
   // Use ref to avoid stale closure in useEffect
   const handleSlideChangeRef = useRef(handleSlideChange);
@@ -384,7 +381,7 @@ const Hero = () => {
     }, 5000); // Переключение каждые 5 секунд
 
     return () => clearInterval(interval);
-  }, [isVideoPlaying, targetSlide]); // Use ref to avoid dependency on handleSlideChange
+  }, [isVideoPlaying, targetSlide, heroSliderConfig]); // Use ref to avoid dependency on handleSlideChange
 
   // Функции управления видео
   const handleMuteUnmute = () => {
@@ -604,12 +601,12 @@ const Hero = () => {
 
         {/* Модальное окно для ставки */}
         <Modal
-          title="Сделать ставку"
+          title={t('modals.makeBid')}
           open={bidModalVisible}
           onOk={handleBidConfirm}
           onCancel={handleBidCancel}
-          okText="Подтвердить ставку"
-          cancelText="Отмена"
+          okText={t('common.confirmBid')}
+          cancelText={t('common.cancel')}
           centered
         >
           <div style={{ padding: '20px 0' }}>
@@ -627,7 +624,7 @@ const Hero = () => {
 
         {/* Модальное окно "How It Works" */}
         <Modal
-          title="How It Works"
+          title={t('loadingStates.howItWorks')}
           open={infoModalVisible}
           onCancel={handleInfoModalClose}
           footer={null}
@@ -649,12 +646,12 @@ const Hero = () => {
 
         {/* Модальное окно для отключения слайдера */}
         <Modal
-          title="Отключить слайдер"
+          title={t('modals.disableSlider')}
           open={disableModalVisible}
           onOk={handleDisableConfirm}
           onCancel={handleDisableCancel}
-          okText="Отключить"
-          cancelText="Отмена"
+          okText={t('common.disable')}
+          cancelText={t('common.cancel')}
           centered
         >
           <div style={{ padding: '20px 0' }}>

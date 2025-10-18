@@ -5,9 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Card, Progress, Tag, Drawer, Button, Space, Row, Col, Alert, Spin } from 'antd';
 import { GlobalOutlined, ClockCircleOutlined, EnvironmentOutlined } from '@ant-design/icons';
-
-// TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+import { useTranslation } from 'react-i18next';
 
 // Mock data for USA → Georgia route with 3 containers
 const routeData = {
@@ -133,6 +131,7 @@ const createLocationIcon = (type) => {
 };
 
 const ActiveLogisticsRoutes = ({ loading = false }) => {
+  const { t } = useTranslation();
   const [containers, setContainers] = useState(initialContainers);
   const [selectedContainer, setSelectedContainer] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -189,7 +188,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
       <div style={{ height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
         <Space direction="vertical" align="center">
           <Spin size="large" />
-          <div style={{ color: '#666' }}>Loading logistics routes...</div>
+          <div style={{ color: '#666' }}>{t('loadingStates.logisticsRoutes')}</div>
         </Space>
       </div>
     );
@@ -201,10 +200,10 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1f2937', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <GlobalOutlined style={{ marginRight: '8px', color: '#3b82f6' }} />
-          {t('active_logistics_routes')}
+          {t('logistics.title')}
         </h3>
         <p style={{ fontSize: '14px', color: '#6b7280' }}>
-          {t('real_time_tracking_of_containers_across_global_network')}
+          {t('logistics.subtitle')}
         </p>
       </div>
 
@@ -243,7 +242,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
                 <Popup>
                   <div style={{ textAlign: 'center' }}>
                     <strong>{routeData.from.city}</strong><br/>
-                    <small style={{ color: '#666' }}>{t('departure_point')}</small>
+                    <small style={{ color: '#666' }}>{t('logistics.departurePoint')}</small>
                   </div>
                 </Popup>
               </Marker>
@@ -256,7 +255,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
                 <Popup>
                   <div style={{ textAlign: 'center' }}>
                     <strong>{routeData.to.city}</strong><br/>
-                    <small style={{ color: '#666' }}>{t('destination')}</small>
+                    <small style={{ color: '#666' }}>{t('logistics.destination')}</small>
                   </div>
                 </Popup>
               </Marker>
@@ -281,7 +280,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
                           strokeColor={getProgressColor(container.progress)}
                         />
                         <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                          {container.progress}% {t('complete')}
+                          {container.progress}% {t('logistics.complete')}
                         </div>
                       </div>
                       <div style={{ fontSize: '12px', color: '#666' }}>
@@ -300,7 +299,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
         <Col xs={24} lg={8} style={{ height: '100%', overflowY: 'auto' }}>
           <div style={{ height: '100%', backgroundColor: '#f9fafb', borderRadius: '12px', border: '1px solid #e5e7eb', padding: '16px' }}>
             <h4 style={{ fontSize: '16px', fontWeight: 'semibold', marginBottom: '16px', color: '#1f2937' }}>
-              {t('active_containers')}
+              {t('logistics.activeContainers')}
             </h4>
 
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -346,8 +345,8 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
             </Space>
 
             <Alert
-              message={t('real_time_updates')}
-              description={`${t('data_updates_every')} 5 ${t('minutes')}`}
+              message={t('logistics.realTimeUpdates')}
+              description={t('logistics.dataUpdates')}
               type="info"
               showIcon
               style={{ marginTop: '16px', fontSize: '12px' }}
@@ -367,7 +366,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
         {selectedContainer && (
           <Space direction="vertical" style={{ width: '100%' }}>
             <div>
-              <strong>{t('container_id')}:</strong> {selectedContainer.id}
+              <strong>{t('logistics.containerId')}:</strong> {selectedContainer.id}
             </div>
             <div>
               <strong>{t('status')}:</strong>
@@ -376,16 +375,16 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
               </Tag>
             </div>
             <div>
-              <strong>{t('route')}:</strong> {routeData.from.city} → {routeData.to.city}
+              <strong>{t('logistics.route')}:</strong> {routeData.from.city} → {routeData.to.city}
             </div>
             <div>
-              <strong>{t('eta')}:</strong> {selectedContainer.eta}
+              <strong>{t('logistics.eta')}:</strong> {selectedContainer.eta}
             </div>
             <div>
-              <strong>{t('description')}:</strong> {selectedContainer.description}
+              <strong>{t('logistics.description')}:</strong> {selectedContainer.description}
             </div>
             <div>
-              <strong>{t('progress')}:</strong>
+              <strong>{t('logistics.progress')}:</strong>
               <Progress
                 percent={selectedContainer.progress}
                 strokeColor={getProgressColor(selectedContainer.progress)}
@@ -393,7 +392,7 @@ const ActiveLogisticsRoutes = ({ loading = false }) => {
               />
             </div>
             <div>
-              <strong>{t('current_location')}:</strong>
+              <strong>{t('logistics.currentLocation')}:</strong>
               <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                 <EnvironmentOutlined style={{ marginRight: '4px' }} />
                 {selectedContainer.location[0].toFixed(4)}, {selectedContainer.location[1].toFixed(4)}

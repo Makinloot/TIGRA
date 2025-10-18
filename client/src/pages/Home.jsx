@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Layout } from 'antd';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import {
   featuredAuctions,
   newsArticles,
@@ -32,8 +33,20 @@ const { Content } = Layout;
 // TODO-FX: Full-width responsive layout implemented - homepage uses 100% viewport width,
 // responsive grids (5 desktop, 2 tablet, 1 mobile), full-width sections, responsive modals
 const Home = ({ isDark, onThemeToggle, appData }) => {
+  const { t } = useTranslation();
+
   // Destructure data from props
   const { topAuctions: propTopAuctions = [], keyMetrics: propKeyMetrics = [] } = appData;
+
+  // Translate key metrics
+  const translatedKeyMetrics = (propKeyMetrics.length ? propKeyMetrics : keyMetrics).map(metric => ({
+    ...metric,
+    title: metric.title === 'Active Auctions' ? t('metrics.activeAuctions') :
+           metric.title === 'Vehicles Listed' ? t('metrics.vehiclesListed') :
+           metric.title === 'Delivered Vehicles' ? t('metrics.deliveredVehicles') :
+           metric.title === 'Partner Carriers' ? t('metrics.partnerCarriers') :
+           metric.title
+  }));
 
   // Calculate content counts for floating navigation
   const contentCounts = {
@@ -102,7 +115,7 @@ const Home = ({ isDark, onThemeToggle, appData }) => {
 
           <HowItWorks />
 
-          <KeyMetrics keyMetrics={keyMetrics} />
+          <KeyMetrics keyMetrics={translatedKeyMetrics} />
 
           <AuctionCardList auctions={topAuctions} />
 

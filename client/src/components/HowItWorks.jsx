@@ -1,43 +1,45 @@
 import React from 'react';
 import { Row, Col, Card, Typography, Space } from 'antd';
 import { SearchOutlined, SafetyOutlined, TruckOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
-const steps = [
-  {
-    icon: <SearchOutlined style={{ fontSize: '20px', color: '#1890ff' }} />,
-    title: "Browse vehicles across auctions",
-    description: "Search through thousands of vehicles from verified auctions worldwide with advanced filters and real-time updates.",
-    image: "https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    alt: "Person browsing vehicle auction listings on a computer"
-  },
-  {
-    icon: <SafetyOutlined style={{ fontSize: '20px', color: '#52c41a' }} />,
-    title: "Place secure bids with instant verification",
-    description: "Bid confidently with our secure platform featuring instant bid verification, fraud protection, and transparent pricing.",
-    image: "https://images.pexels.com/photos/2127733/pexels-photo-2127733.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    alt: "Secure bidding interface with bid confirmation"
-  },
-  {
-    icon: <TruckOutlined style={{ fontSize: '20px', color: '#faad14' }} />,
-    title: "Arrange shipping directly in platform",
-    description: "Seamlessly arrange transportation with our integrated logistics network, tracking, and insurance coverage.",
-    image: "https://images.pexels.com/photos/1719649/pexels-photo-1719649.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
-    alt: "Logistics dashboard showing vehicle shipping routes"
-  }
-];
-
 const HowItWorks = () => {
+  const { t } = useTranslation();
+
+  const steps = [
+    {
+      icon: <SearchOutlined style={{ fontSize: '20px', color: '#1890ff' }} />,
+      title: t('howItWorks.steps.browse.title'),
+      description: t('howItWorks.steps.browse.description'),
+      image: "https://images.pexels.com/photos/1719648/pexels-photo-1719648.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+      alt: t('howItWorks.steps.browse.alt')
+    },
+    {
+      icon: <SafetyOutlined style={{ fontSize: '20px', color: '#52c41a' }} />,
+      title: t('howItWorks.steps.bid.title'),
+      description: t('howItWorks.steps.bid.description'),
+      image: "https://images.pexels.com/photos/2127733/pexels-photo-2127733.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+      alt: t('howItWorks.steps.bid.alt')
+    },
+    {
+      icon: <TruckOutlined style={{ fontSize: '20px', color: '#faad14' }} />,
+      title: t('howItWorks.steps.shipping.title'),
+      description: t('howItWorks.steps.shipping.description'),
+      image: "https://images.pexels.com/photos/1719649/pexels-photo-1719649.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop",
+      alt: t('howItWorks.steps.shipping.alt')
+    }
+  ];
   return (
     <div id="how-it-works-section" style={{ padding: '40px 0', backgroundColor: 'white' }}>
       <div className="full-width-section">
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <Title level={2} style={{ marginBottom: '8px', fontSize: '24px' }}>
-            How It Works
+            {t('howItWorks.title')}
           </Title>
           <Text style={{ fontSize: '14px', color: '#666' }}>
-            Simple, secure, and efficient vehicle auction and logistics process
+            {t('howItWorks.subtitle')}
           </Text>
         </div>
 

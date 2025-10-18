@@ -27,8 +27,8 @@ const mockNotifications = [
   {
     id: 1,
     type: 'price_change',
-    title: 'Price Decreased',
-    message: '2020 Honda Civic price dropped by $500',
+    title: 'ფასი შემცირდა',
+    message: '2020 Honda Civic-ის ფასი 500$-ით შემცირდა',
     vehicle: '2020 Honda Civic',
     lotId: 'AA-2024-001',
     oldPrice: 13000,
@@ -39,8 +39,8 @@ const mockNotifications = [
   {
     id: 2,
     type: 'new_listing',
-    title: 'New Similar Vehicle',
-    message: 'Similar Honda Civic listed in your area',
+    title: 'ახალი მსგავსი ავტომობილი',
+    message: 'მსგავსი Honda Civic დარეგისტრირდა თქვენს რეგიონში',
     vehicle: '2020 Honda Civic',
     lotId: 'AA-2024-017',
     price: 12800,
@@ -50,8 +50,8 @@ const mockNotifications = [
   {
     id: 3,
     type: 'price_change',
-    title: 'Price Increased',
-    message: '2019 Toyota Camry price increased by $200',
+    title: 'ფასი გაიზარდა',
+    message: '2019 Toyota Camry-ის ფასი 200$-ით გაიზარდა',
     vehicle: '2019 Toyota Camry',
     lotId: 'AA-2024-002',
     oldPrice: 15600,
@@ -62,8 +62,8 @@ const mockNotifications = [
   {
     id: 4,
     type: 'auction_ending',
-    title: 'Auction Ending Soon',
-    message: 'Your tracked 2021 Ford F-150 auction ends in 2 hours',
+    title: 'აუქციონი მალე დამთავრდება',
+    message: 'თქვენი მონიტორინგის ქვეშ მყოფი 2021 Ford F-150 აუქციონი 2 საათში დამთავრდება',
     vehicle: '2021 Ford F-150',
     lotId: 'AA-2024-003',
     currentBid: 28500,
@@ -73,8 +73,8 @@ const mockNotifications = [
   {
     id: 5,
     type: 'new_listing',
-    title: 'New Vehicle Match',
-    message: 'New BMW X3 matches your search criteria',
+    title: 'ახალი ავტომობილის დამთხვევა',
+    message: 'ახალი BMW X3 ემთხვევა თქვენს ძიების კრიტერიუმებს',
     vehicle: '2019 BMW X3',
     lotId: 'AA-2024-018',
     price: 22900,
@@ -111,10 +111,10 @@ const NotificationModal = ({ onClose }) => {
     const notificationTime = new Date(timestamp);
     const diffInHours = Math.floor((now - notificationTime) / (1000 * 60 * 60));
 
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 1) return 'ახლახანს';
+    if (diffInHours < 24) return `${diffInHours}სთ-ის წინ`;
     const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays}d ago`;
+    return `${diffInDays}დღის წინ`;
   };
 
   const getNotificationIcon = (type) => {
@@ -164,7 +164,7 @@ const NotificationModal = ({ onClose }) => {
         alignItems: 'center'
       }}>
         <Title level={4} style={{ margin: 0, fontSize: '16px' }}>
-          Notifications
+          შეტყობინებები
           {unreadCount > 0 && (
             <Badge
               count={unreadCount}
@@ -256,7 +256,7 @@ const NotificationModal = ({ onClose }) => {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="No notifications yet"
+            description="შეტყობინებები ჯერ არ არის"
             style={{ margin: '20px 0' }}
           />
         )}
@@ -270,7 +270,7 @@ const NotificationModal = ({ onClose }) => {
           textAlign: 'center'
         }}>
           <Button type="link" size="small" style={{ padding: 0 }}>
-            View All Notifications
+            ნახეთ ყველა შეტყობინება
           </Button>
         </div>
       )}

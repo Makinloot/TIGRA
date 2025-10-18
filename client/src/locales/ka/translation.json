@@ -1,0 +1,440 @@
+{
+  "navigation": {
+    "home": "მთავარი",
+    "statistics": "სტატისტიკა",
+    "dashboard": "დეშბორდი",
+    "auctions": "აუქციონები",
+    "logistics": "ლოგისტიკა",
+    "crm": "CRM",
+    "support": "მხარდამჭერი"
+  },
+  "hero": {
+    "headline": "ჭკვიანი ავტოაუქციონები. გლობალური ლოგისტიკა.",
+    "subtext": "ძებნეთ, დადეთ ბიდი და ამტვერეთ ავტომობილები მთელ მსოფლიოში — ხელოვნური ინტელექტის ლოგისტიკით.",
+    "joinAuction": "ცოცხალ აუქციონში გაწევრდეთ",
+    "howItWorks": "როგორ მუშაობს"
+  },
+  "howItWorks": {
+    "browseVehicles": "დაათვალიერეთ ავტომობილები აუქციონებში",
+    "placeBids": "დადეთ უსაფრთხო ბიდი მყის გადამოწმებით",
+    "arrangeShipping": "მოაწყობთ გადაზიდვას პირდაპირ პლატფორმაზე"
+  },
+  "footer": {
+    "terms": "მომსახურების პირობები",
+    "privacy": "კონფიდენციალობის პოლიტიკა",
+    "contact": "დაგვიკავშირდით",
+    "about": "ჩვენ შესახებ",
+    "platform": "პლატფორმა",
+    "resources": "რესურსები",
+    "help_center": "დახმარების ცენტრი",
+    "docs": "დოკუმენტაცია",
+    "blog": "ბლოგი",
+    "ai_assistant": "AI ასისტენტი",
+    "get_a_quote": "მიიღეთ ციტატა",
+    "sitemap": "საიტის რუკა",
+    "accessibility": "ხელმისაწვდომობა",
+    "cookies": "ქუქი-ფაილები"
+  },
+  "auth": {
+    "welcome_back": "კეთილი იყო ბრუნება",
+    "sign_in": "შესვლა",
+    "create_account": "ანგარიშის შექმნა",
+    "email": "ელფოსტა",
+    "password": "პაროლი",
+    "full_name": "სრული სახელი",
+    "confirm_password": "პაროლის დადასტურება",
+    "i_am_a": "მე ვარ",
+    "user": "მომხმარებელი",
+    "dealer": "დილერი",
+    "forgot_password": "დაგავიწყდა პაროლი?",
+    "select_account_type": "აირჩიეთ ანგარიშის ტიპი",
+    "user_account_desc": "მომხმარებელი — ყიდვისა და ბიდის დაკელება",
+    "dealer_account_desc": "დილერი — შეუძლია ავტომობილების დაკელება და გაყიდვა",
+    "agreement_text": "ანგარიშის შექმნით, თქვენ ეთანხმებით ჩვენს",
+    "and": "და",
+    "or_continue_with": "ან გააგრძელეთ",
+    "google": "Google",
+    "facebook": "Facebook",
+    "authenticating": "პირადობის დადასტურება..."
+  },
+  "placeholders": {
+    "email": "you@example.com",
+    "password": "••••••••",
+    "password_register": "შექმენით პაროლი",
+    "confirm_password": "გაიმეორეთ პაროლი",
+    "full_name": "ივან ივანოვი"
+  },
+  "validation": {
+    "email_required": "ელფოსტა აუცილებელია",
+    "email_invalid": "გთხოვთ შეიყვანოთ სწორი ელფოსტა",
+    "password_required": "პაროლი აუცილებელია",
+    "password_min_length": "პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო",
+    "password_policy": "პაროლი უნდა შეიცავდეს მინიმუმ 1 დიდ ასოს, 1 პატარა ასოს და 1 ციფრს",
+    "passwords_do_not_match": "პაროლები არ ემთხვევა",
+    "full_name_required": "სრული სახელი აუცილებელია",
+    "full_name_min_length": "სრული სახელი უნდა იყოს მინიმუმ 2 სიმბოლო",
+    "confirm_password_required": "გთხოვთ დაადასტუროთ პაროლი",
+    "role_required": "გთხოვთ აირჩიეთ ანგარიშის ტიპი"
+  },
+  "profile": {
+    "auction_trading": "აუქციონი და ვაჭრობა",
+    "auction_tools": "აუქციონის ინსტრუმენტები",
+    "my_bids": "ჩემი ბიდი",
+    "watchlist": "დათვალიერების სია",
+    "won_vehicles": "მოგებული ავტომობილები",
+    "saved_searches": "შენახული ძებნა",
+    "logistics_shipping": "ლოგისტიკა და გადაზიდვა",
+    "logistics_tools": "ლოგისტიკა",
+    "track_shipments": "ამტვერეთ გადაზიდვა",
+    "shipping_calculator": "გადაზიდვის კალკულატორი",
+    "documents_center": "დოკუმენტების ცენტრი",
+    "account_settings": "ანგარიში და პარამეტრები",
+    "account_tools": "ანგარიში",
+    "profile_settings": "პროფილის პარამეტრები",
+    "payment_methods": "გადახდის მეთოდები",
+    "notifications": "შეტყობინებები",
+    "logout": "გამოსვლა",
+    "dealer_role": "დილერი",
+    "user_role": "მომხმარებელი"
+  },
+  "common": {
+    "save": "შენახვა",
+    "cancel": "გაუქმება",
+    "delete": "წაშლა",
+    "edit": "რედაქტირება",
+    "add": "დამატება",
+    "search": "ძებნა",
+    "filter": "ფილტრი",
+    "sort": "დალაგება",
+    "loading": "იტვირტება...",
+    "error": "შეცდომა",
+    "success": "წარმატება",
+    "warning": "გაფრთხოვება",
+    "info": "ინფორმაცია",
+    "close": "დახურვა",
+    "confirm": "დადასტურება",
+    "previous": "წინა",
+    "next": "შემდეგი",
+    "language": "ენა",
+    "ok": "კარგი",
+    "confirmBid": "ბიდის დადასტურება",
+    "disable": "გამორთვა",
+    "noItemsFound": "ელემენტები არ მოიძებნა"
+  },
+  "hero": {
+    "slide1": {
+      "title": "ათასობით ავტომობილი ელოდება შენს",
+      "subtitle": "გაწევრიანდი ცოცხალ აუქციონში!",
+      "carModel": "2022 Tesla Model 3",
+      "participants": "მონაწილე",
+      "joinLiveAuction": "ცოცხალ აუქციონში გაწევრდეთ",
+      "bidQuestion": "რამდენს გსურთ დადოთ ბიდი?"
+    },
+    "slide2": {
+      "title": "გაწევრიანდი რეალურ დროში ტორგებში",
+      "subtitle": "დადე, დააკვირდე და მოიგე!",
+      "carModel": "2019 BMW X5",
+      "participants": "მონაწილე",
+      "joinLiveAuction": "ცოცხალ აუქციონში გაწევრდეთ",
+      "bidQuestion": "რამდენს გსურთ დადოთ ბიდი?"
+    },
+    "slide3": {
+      "title": "გლობალური ავტომობილების ბაზარი",
+      "subtitle": "იპოვე შენი სურვილის ავტომობილი მთელ მსოფლიოში",
+      "carModel": "2021 Mercedes-Benz GLC",
+      "participants": "მონაწილე",
+      "joinLiveAuction": "ცოცხალ აუქციონში გაწევრდეთ",
+      "bidQuestion": "რამდენს გსურთ დადოთ ბიდი?"
+    },
+    "videoControls": {
+      "muteUnmute": "ხმის გამორთვა/ჩართვა",
+      "stopSlider": {
+        "stop": "სლაიდერის გაჩერება",
+        "resume": "სლაიდერის გაგრძელება",
+        "question": "გსურთ სლაიდერის გაჩერება?"
+      }
+    }
+  },
+  "search": {
+    "title": "იპოვე შენი სურვილის ავტომობილი",
+    "subtitle": "მოძებნე VIN-ით, გაფილტრე პარამეტრებით და დაალაგე შენი პრიორიტეტებით.",
+    "placeholder": "შეიყვანეთ VIN ან საკვანძო სიტყვები...",
+    "button": "ძებნა",
+    "recentSearches": "ბოლო ძიებები:",
+    "quickFilters": "სწრაფი ფილტრები:",
+    "filters": {
+      "under10k": "10,000-ზე ნაკლები",
+      "electric": "ელექტრო",
+      "lowMileage": "დაბალი პრობეგი",
+      "suvOnly": "მხოლოდ SUV",
+      "certified": "სერთიფიცირებული წინასწარი გაყიდვა",
+      "year2020Plus": "2020+",
+      "trucks": "სატვირთოები",
+      "luxury": "ლუქსი"
+    },
+    "sortBy": "დალაგება:",
+    "saveSearch": "ძიების შენახვა",
+    "advancedFilters": "დამატებითი ფილტრები",
+    "make": "მარკა",
+    "model": "მოდელი",
+    "year": "წელი",
+    "priceRange": "$ ფასის დიაპაზონი",
+    "bodyType": "სხეულის ტიპი",
+    "condition": "მდგომარეობა",
+    "selectMakes": "აირჩიეთ მარკები",
+    "selectModels": "აირჩიეთ მოდელები",
+    "selectYears": "აირჩიეთ წლები",
+    "selectBodyTypes": "აირჩიეთ სხეულის ტიპები",
+    "selectCondition": "აირჩიეთ მდგომარეობა"
+  },
+  "howItWorks": {
+    "title": "როგორ მუშაობს",
+    "subtitle": "მარტივი, უსაფრთხო და ეფექტური ავტომობილების აუქციონისა და ლოგისტიკის პროცესი",
+    "steps": {
+      "browse": {
+        "title": "დაათვალიერეთ ავტომობილები აუქციონებში",
+        "description": "მოძებნეთ ათასობით ავტომობილი დამოწმებული აუქციონებიდან მთელი მსოფლიოდან დამატებითი ფილტრებითა და რეალურ დროში განახლებებით.",
+        "alt": "ადამიანი ათვალიერებს ავტომობილების აუქციონის სიებს კომპიუტერზე"
+      },
+      "bid": {
+        "title": "დადეთ უსაფრთხო ბიდი მყის გადამოწმებით",
+        "description": "დადეთ ბიდი ნდობით ჩვენს უსაფრთხო პლატფორმაზე მყისი ბიდის გადამოწმებით, თაღლითობისგან დაცვითა და გამჭვირვალე ფასებით.",
+        "alt": "უსაფრთხო ბიდინგის ინტერფეისი ბიდის დადასტურებით"
+      },
+      "shipping": {
+        "title": "მოაწყობთ გადაზიდვას პირდაპირ პლატფორმაზე",
+        "description": "უპრობლემოდ მოაწყობთ ტრანსპორტირებას ჩვენი ინტეგრირებული ლოგისტიკური ქსელით, თვალთვალითა და დაზღვევით.",
+        "alt": "ლოგისტიკის დაფა ავტომობილების გადაზიდვის მარშრუტების საჩვენებლად"
+      }
+    }
+  },
+  "auctions": {
+    "currentBid": "მიმდინარე ბიდი",
+    "placeBid": "დადეთ ბიდი",
+    "miles": "მილი",
+    "endingSoon": "მალე დამთავრდება",
+    "live": "ცოცხალი",
+    "hotDeal": "ცხელი შეთავაზება",
+    "verified": "დამოწმებული",
+    "shipReady": "მზადაა გადაზიდვისთვის",
+    "participants": "მონაწილე",
+    "timeLeft": "დარჩენილი დრო",
+    "viewDetails": "ნახეთ დეტალები",
+    "newBidPlaced": "ახალი ბიდი დადო",
+    "by": "მიერ",
+    "bid": "ბიდი",
+    "bids": "ბიდი",
+    "lot": "ლოტი",
+    "year": "წელი",
+    "condition": "მდგომარეობა",
+    "location": "მდებარეობა"
+  },
+  "modal": {
+    "current_bid": "მიმდინარე ბიდი",
+    "time_left": "დარჩენილი დრო",
+    "active_bidders": "აქტიური ბიდერები",
+    "condition_good": "კარგი",
+    "vehicle_details": "ავტომობილის დეტალები",
+    "engine": "ძრავა",
+    "transmission": "ტრანსმისია",
+    "mileage": "პრობეგი",
+    "condition": "მდგომარეობა",
+    "loading_vehicle": "ავტომობილის მონაცემები იტვირთება...",
+    "vehicle_not_found": "ავტომობილი ვერ მოიძებნა"
+  },
+  "footer": {
+    "brand": {
+      "title": "AutoMarketLogistic",
+      "tagline": "ჭკვიანი გლობალური ავტომობილების ვაჭრობისა და ლოგისტიკის პლატფორმა",
+      "description": "აკავშირებს გლობალურ მყიდველებს, გამყიდველებს და ტრანსპორტიორებს ერთ ჭკვიან ეკოსისტემაში.",
+      "followTwitter": "გამოგვყევით Twitter-ზე",
+      "connectLinkedIn": "დაუკავშირდით LinkedIn-ზე",
+      "watchVideos": "უყურეთ ჩვენს ვიდეოებს"
+    },
+    "platform": "პლატფორმა",
+    "auctions": "აუქციონები",
+    "logistics": "ლოგისტიკა",
+    "crm": "CRM",
+    "aiAssistant": "AI ასისტენტი",
+    "aboutUs": "ჩვენ შესახებ",
+    "resources": "რესურსები",
+    "helpCenter": "დახმარების ცენტრი",
+    "docs": "დოკუმენტაცია",
+    "blog": "ბლოგი",
+    "privacyPolicy": "კონფიდენციალობის პოლიტიკა",
+    "termsOfService": "მომსახურების პირობები",
+    "contact": "კონტაქტი",
+    "address": "100 SE 2nd St, Miami, FL 33131, USA",
+    "phone": "+1 (305) 555-1023",
+    "email": "support@automarketlogistic.com",
+    "businessHours": "ორშ-პარ: 9:00-18:00 GMT+4",
+    "getQuote": "მიიღეთ ციტატა",
+    "copyright": "© 2025 AutoMarketLogistic. ყველა უფლება დაცულია.",
+    "sitemap": "საიტის რუკა",
+    "accessibility": "ხელმისაწვდომობა",
+    "cookies": "ქუქი-ფაილები"
+  },
+  "metrics": {
+    "activeAuctions": "აქტიური აუქციონები",
+    "vehiclesListed": "დარეგისტრირებული ავტომობილები",
+    "deliveredVehicles": "გადაზიდული ავტომობილები",
+    "partnerCarriers": "პარტნიორი ტრანსპორტიორები"
+  },
+  "auctionsList": {
+    "title": "გამორჩეული აუქციონები",
+    "subtitle": "ცოცხალი აუქციონები რომლებიც მალე დამთავრდება — დადეთ თქვენი ბიდი ახლავე",
+    "loadMore": "ჩატვირთეთ მეტი"
+  },
+  "sort": {
+    "relevance": "შესაბამისობა",
+    "priceLow": "ფასი (დაბალი → მაღალი)",
+    "priceHigh": "ფასი (მაღალი → დაბალი)",
+    "mileage": "პრობეგი",
+    "yearNew": "წელი (უახლესი)"
+  },
+  "loadingStates": {
+    "logisticsRoutes": "იტვირთება ლოგისტიკის მარშრუტები...",
+    "timeLeft": "იტვირთება...",
+    "howItWorks": "როგორ მუშაობს"
+  },
+  "aiAssistant": {
+    "placeholder": "დაწერეთ თქვენი შეკითხვა..."
+  },
+  "modals": {
+    "makeBid": "გააკეთეთ ბიდი",
+    "disableSlider": "გამორთეთ სლაიდერი",
+    "trackPrice": "ფასის თვალთვალი",
+    "shareDetails": "გააზიარეთ ავტომობილის დეტალები",
+    "addToFavorites": "რჩეულებში დამატება",
+    "trackPriceChanges": "ფასის ცვლილებების თვალთვალი",
+    "addToCompare": "შედარებისთვის დამატება"
+  },
+  "tooltips": {
+    "profileNotifications": "პროფილის შეტყობინებები",
+    "openProfileMenu": "გახსენით პროფილის მენიუ"
+  },
+  "notifications": {
+    "phone": "ტელეფონი",
+    "email": "ელ-ფოსტა",
+    "socialMedia": "სოციალური მედია",
+    "websiteOnly": "მხოლოდ ვებგვერდი"
+  },
+  "auctionStatus": {
+    "ended": "დასრულდა",
+    "veryGood": "A",
+    "good": "B",
+    "fair": "C",
+    "poor": "D",
+    "inTransit": "ტრანზიტში",
+    "loading": "იტვირთება"
+  },
+  "news": {
+    "title": "ბოლო სიახლეები და განახლებები",
+    "subtitle": "განათლდით უახლესი ავტომობილების აუქციონის სიახლეებითა და ინდუსტრიის შეხედულებებით",
+    "readMore": "წაიკითხეთ მეტი",
+    "viewAll": "ნახეთ ყველა სიახლე და განახლება",
+    "untitledArticle": "უსათაურო სტატია",
+    "unknownAuthor": "უცნობი ავტორი"
+  },
+  "logistics": {
+    "title": "გლობალური აქტიური ლოგისტიკის მარშრუტები",
+    "subtitle": "კონტეინერების რეალურ დროში თვალთვალი გლობალურ ქსელში",
+    "activeContainers": "აქტიური კონტეინერები",
+    "inTransit": "ტრანზიტში",
+    "loading": "იტვირთება",
+    "eta": "ETA",
+    "realTimeUpdates": "რეალურ დროში განახლებები",
+    "dataUpdates": "მონაცემები განახლდება ყოველ 5 წუთში",
+    "departurePoint": "გასვლის წერტილი",
+    "destination": "დანიშნულების ადგილი",
+    "complete": "დასრულებული",
+    "containerId": "კონტეინერის ID",
+    "route": "მარშრუტი",
+    "description": "აღწერა",
+    "progress": "პროგრესი",
+    "currentLocation": "მიმდინარე მდებარეობა",
+    "container_locations": "კონტეინერების მდებარეობები",
+    "no_container_locations": "კონტეინერების მდებარეობები არ არის ხელმისაწვდომი",
+    "live_container_tracking": "კონტეინერების ცოცხალ თვალთვალი",
+    "loading_live_tracking": "იტვირთება ცოცხალ თვალთვალი...",
+    "last_updated": "ბოლო განახლება:",
+    "route_progress": "მარშრუტის პროგრესი",
+    "value": "ღირებულება",
+    "from": "გასვლის წერტილი",
+    "to": "დანიშნულების ადგილი",
+    "vessel": "გემი",
+    "last_update": "ბოლო განახლება",
+    "complete": "დასრულებული",
+    "eta": "ETA"
+  },
+  "partners": {
+    "title": "სანდო ლოგისტიკის პარტნიორები",
+    "subtitle": "ჩვენი გლობალური ქსელი ლოგისტიკისა და დაზღვევის ლიდერების"
+  },
+  "statistics": {
+    "title": "სტატისტიკა - AutoMarketLogistic",
+    "description": "სრული ანალიტიკა და შეხედულებები ავტომობილების აუქციონებისა და ლოგისტიკის ოპერაციებისთვის",
+    "generalStats": "ზოგადი სტატისტიკა",
+    "totalSales": "სულ გაყიდვები",
+    "activeAuctions": "აქტიური აუქციონები",
+    "activeRoutes": "აქტიური მარშრუტები",
+    "avgDeliveryTime": "საშუალო მიწოდების დრო",
+    "analytics": "ანალიტიკა",
+    "sales": "გაყიდვები",
+    "categories": "კატეგორიები",
+    "routes": "მარშრუტები",
+    "logistics": "ლოგისტიკა",
+    "mapRoutes": "მარშრუტების რუკა",
+    "month": "თვე",
+    "target": "მიზანი",
+    "percentage": "პროცენტი",
+    "volume": "მოცულობა",
+    "growth": "ზრდა",
+    "containers": "კონტეინერები",
+    "realTimeUpdates": "რეალურ დროში განახლებები",
+    "dataRefreshes": "მონაცემები განახლდება ყოველ 5 წუთში"
+  },
+  "dashboard": {
+    "title": "დეშბორდი - AutoMarketLogistic",
+    "description": "პირადი დეშბორდი აუქციონების, ბიდებისა და ლოგისტიკის მართვისთვის",
+    "myDashboard": "ჩემი დეშბორდი",
+    "dealerDashboard": "დილერის დეშბორდი",
+    "editProfile": "პროფილის რედაქტირება",
+    "userView": "მომხმარებლის ხედი",
+    "dealerView": "დილერის ხედი",
+    "myAuctions": "ჩემი აუქციონები",
+    "lotId": "ლოტის ID",
+    "title": "სათაური",
+    "currentBid": "მიმდინარე ბიდი",
+    "myBid": "ჩემი ბიდი",
+    "timeLeft": "დარჩენილი დრო",
+    "status": "სტატუსი",
+    "delivery": "მიწოდება",
+    "myListings": "ჩემი განცხადებები",
+    "clients": "კლიენტები",
+    "reports": "ანგარიშები",
+    "totalSales": "სულ გაყიდვები",
+    "activeListings": "აქტიური განცხადებები",
+    "totalClients": "სულ კლიენტები",
+    "name": "სახელი",
+    "email": "ელფოსტა",
+    "vehicles": "ავტომობილები",
+    "lastActivity": "ბოლო აქტივობა",
+    "bids": "ბიდები",
+    "endTime": "დასრულების დრო",
+    "buyer": "მყიდველი",
+    "shippingRoutes": "აქტიური სატრანსპორტო მარშრუტები"
+  },
+  "loadingStates": {
+    "chart": "დიაგრამის მონაცემების ჩატვირთვა...",
+    "logisticsRoutes": "ლოგისტიკის მარშრუტების ჩატვირთვა...",
+    "timeLeft": "ჩატვირთვა...",
+    "howItWorks": "როგორ მუშაობს"
+  },
+  "sections": {
+    "featuredAuctions": {
+      "title": "მალე დამთავრდება",
+      "subtitle": "ცოცხალი აუქციონები რომლებიც მალე დამთავრდება — დადეთ თქვენი ბიდი ახლავე"
+    }
+  }
+}

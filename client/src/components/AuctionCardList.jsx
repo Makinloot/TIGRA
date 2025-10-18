@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Typography, Button, Carousel } from 'antd';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import AuctionCard from './AuctionCard'; // Keep old one for compatibility
 import AuctionCard2025 from './AuctionCard2025'; // New 2025 version
-import QuickViewModal from './QuickViewModal';
+import AuctionQuickViewModal from './AuctionQuickViewModal';
 
 const { Title, Text } = Typography;
 
-const AuctionCardList = ({ auctions }) => {
+const AuctionCardList = ({ auctions, showTitle = true }) => {
+  const { t } = useTranslation();
   const [visibleRows, setVisibleRows] = useState(3); // Start with 3 rows (15 cards on desktop)
   const [loading, setLoading] = useState(false);
-  const [quickViewAuction, setQuickViewAuction] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
@@ -45,10 +47,6 @@ const AuctionCardList = ({ auctions }) => {
     }, 1000);
   };
 
-  const handleAddToFavorites = (auctionId) => {
-    console.log('Added to favorites:', auctionId);
-    // TODO-FX: Implement favorites functionality
-  };
 
   const handlePlaceBid = (auctionId) => {
     console.log('Place bid on auction:', auctionId);
@@ -56,13 +54,13 @@ const AuctionCardList = ({ auctions }) => {
   };
 
   const handleViewDetails = (auctionId) => {
-    console.log('View details for auction:', auctionId);
-    // TODO-FX: Navigate to auction details page
+    setSelectedVehicleId(auctionId);
+    setModalOpen(true);
   };
 
   const handleModalClose = () => {
-    setModalVisible(false);
-    setQuickViewAuction(null);
+    setModalOpen(false);
+    setSelectedVehicleId(null);
   };
 
   // Calculate how many cards to show based on current visible rows
@@ -71,14 +69,16 @@ const AuctionCardList = ({ auctions }) => {
   return (
     <div id="auction-card-list-section" style={{ backgroundColor: '#fafafa' }} className="section-spacing">
       <div className="full-width-section">
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <Title level={2} style={{ marginBottom: '16px' }}>
-            Featured Auctions
-          </Title>
-          <Text style={{ fontSize: '16px', color: '#666' }}>
-            Live auctions ending soon - place your bids now
-          </Text>
-        </div>
+        {showTitle && (
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <Title level={2} style={{ marginBottom: '16px' }}>
+              {t('auctionsList.title')}
+            </Title>
+            <Text style={{ fontSize: '16px', color: '#666' }}>
+              {t('auctionsList.subtitle')}
+            </Text>
+          </div>
+        )}
 
         {/* Responsive Grid/Carousel View - Using new AuctionCard2025 */}
         {isDesktop ? (
@@ -95,6 +95,7 @@ const AuctionCardList = ({ auctions }) => {
                   auction={auction}
                   onPlaceBid={handlePlaceBid}
                   onViewDetails={handleViewDetails}
+                  onImageClick={handleViewDetails}
                   showExtraData={true}
                 />
               </Col>
@@ -119,6 +120,7 @@ const AuctionCardList = ({ auctions }) => {
                     auction={auction}
                     onPlaceBid={handlePlaceBid}
                     onViewDetails={handleViewDetails}
+                    onImageClick={handleViewDetails}
                     showExtraData={true}
                   />
                 </div>
@@ -137,7 +139,7 @@ const AuctionCardList = ({ auctions }) => {
               onClick={handleLoadMore}
               style={{ padding: '0 40px', height: '48px' }}
             >
-              {loading ? 'Loading...' : `Load More (${auctions.length - displayedAuctions.length} remaining)`}
+              {loading ? t('common.loading') : `${t('auctionsList.loadMore')} (${auctions.length - displayedAuctions.length} remaining)`}
             </Button>
           </div>
         )}
@@ -156,12 +158,11 @@ const AuctionCardList = ({ auctions }) => {
           </div>
         )}
 
-        {/* Quick View Modal */}
-        <QuickViewModal
-          auction={quickViewAuction}
-          visible={modalVisible}
+        {/* Auction Quick View Modal */}
+        <AuctionQuickViewModal
+          open={modalOpen}
           onClose={handleModalClose}
-          onAddToFavorites={handleAddToFavorites}
+          vehicleId={selectedVehicleId}
         />
       </div>
     </div>
@@ -170,6 +171,7 @@ const AuctionCardList = ({ auctions }) => {
 
 AuctionCardList.propTypes = {
   auctions: PropTypes.array.isRequired,
+  showTitle: PropTypes.bool,
 };
 
 export default AuctionCardList;

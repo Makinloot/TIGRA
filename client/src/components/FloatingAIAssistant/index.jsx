@@ -4,8 +4,7 @@ import { FloatButton, Tooltip, Grid } from 'antd';
 import { RobotOutlined } from '@ant-design/icons';
 import AIAssistantPanel from '../AIAssistantPanel';
 
-// TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+// Direct Georgian translation for demo
 
 const { useBreakpoint } = Grid;
 
@@ -36,7 +35,7 @@ const FloatingAIAssistant = () => {
 
   return (
     <>
-      <Tooltip title={t('ask_ai_assistant')} placement="top">
+      <Tooltip title="კითხეთ AI ასისტენტს" placement="top">
         <FloatButton
           icon={<RobotOutlined />}
           type="primary"

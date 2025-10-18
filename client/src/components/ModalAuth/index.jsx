@@ -20,7 +20,6 @@ import {
   GoogleOutlined,
   FacebookOutlined
 } from '@ant-design/icons';
-import { t } from '../../i18n';
 
 const { Text, Link } = Typography;
 
@@ -76,7 +75,7 @@ const ModalAuth = ({
       if (!value || getFieldValue('password') === value) {
         return Promise.resolve();
       }
-      return Promise.reject(new Error(t('passwords_do_not_match')));
+      return Promise.reject(new Error('პაროლები არ ემთხვევა'));
     },
   });
 
@@ -84,7 +83,7 @@ const ModalAuth = ({
   const tabItems = [
     {
       key: 'login',
-      label: t('sign_in'),
+      label: 'შესვლა',
       children: (
         <Form
           form={loginForm}
@@ -93,42 +92,42 @@ const ModalAuth = ({
           requiredMark={false}
         >
           <Form.Item
-            label={t('email')}
+            label="ელფოსტა"
             name="email"
             rules={[
-              { required: true, message: t('email_required') },
-              { type: 'email', message: t('email_invalid') }
+              { required: true, message: 'ელფოსტა აუცილებელია' },
+              { type: 'email', message: 'გთხოვთ შეიყვანოთ სწორი ელფოსტა' }
             ]}
           >
             <Input
-              placeholder={t('email_placeholder')}
+              placeholder="you@example.com"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('password')}
+            label="პაროლი"
             name="password"
             rules={[
-              { required: true, message: t('password_required') },
-              { min: 8, message: t('password_min_length') }
+              { required: true, message: 'პაროლი აუცილებელია' },
+              { min: 8, message: 'პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო' }
             ]}
           >
             <Input.Password
-              placeholder={t('password_placeholder')}
+              placeholder="••••••••"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('i_am_a')}
+            label="მე ვარ"
             name="role"
-            rules={[{ required: true, message: t('role_required') }]}
+            rules={[{ required: true, message: 'გთხოვთ აირჩიეთ ანგარიშის ტიპი' }]}
           >
             <Radio.Group size="large">
               <Space direction="vertical" style={{ width: '100%' }}>
-                <Radio value="user">{t('user')}</Radio>
-                <Radio value="dealer">{t('dealer')}</Radio>
+                <Radio value="user">მომხმარებელი</Radio>
+                <Radio value="dealer">დილერი</Radio>
               </Space>
             </Radio.Group>
           </Form.Item>
@@ -136,7 +135,7 @@ const ModalAuth = ({
           <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
             <Col>
               <Link href="/forgot-password" style={{ fontSize: '14px' }}>
-                {t('forgot_password')}
+                დაგავიწყდა პაროლი?
               </Link>
             </Col>
           </Row>
@@ -150,7 +149,7 @@ const ModalAuth = ({
               icon={<LoginOutlined />}
               loading={loading}
             >
-              {t('sign_in')}
+              შესვლა
             </Button>
           </Form.Item>
         </Form>
@@ -158,7 +157,7 @@ const ModalAuth = ({
     },
     {
       key: 'register',
-      label: t('create_account'),
+      label: 'ანგარიშის შექმნა',
       children: (
         <Form
           form={registerForm}
@@ -167,85 +166,85 @@ const ModalAuth = ({
           requiredMark={false}
         >
           <Form.Item
-            label={t('full_name')}
+            label="სრული სახელი"
             name="full_name"
             rules={[
-              { required: true, message: t('full_name_required') },
-              { min: 2, message: t('full_name_min_length') }
+              { required: true, message: 'სრული სახელი აუცილებელია' },
+              { min: 2, message: 'სრული სახელი უნდა იყოს მინიმუმ 2 სიმბოლო' }
             ]}
           >
             <Input
-              placeholder={t('full_name_placeholder')}
+              placeholder="ივან ივანოვი"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('email')}
+            label="ელფოსტა"
             name="email"
             rules={[
-              { required: true, message: t('email_required') },
-              { type: 'email', message: t('email_invalid') }
+              { required: true, message: 'ელფოსტა აუცილებელია' },
+              { type: 'email', message: 'გთხოვთ შეიყვანოთ სწორი ელფოსტა' }
             ]}
           >
             <Input
-              placeholder={t('email_placeholder')}
+              placeholder="you@example.com"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('password')}
+            label="პაროლი"
             name="password"
             rules={[
-              { required: true, message: t('password_required') },
-              { min: 8, message: t('password_min_length') },
+              { required: true, message: 'პაროლი აუცილებელია' },
+              { min: 8, message: 'პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო' },
               {
                 pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                message: t('password_policy')
+                message: 'პაროლი უნდა შეიცავდეს მინიმუმ 1 დიდ ასოს, 1 პატარა ასოს და 1 ციფრს'
               }
             ]}
           >
             <Input.Password
-              placeholder={t('password_placeholder_register')}
+              placeholder="შექმენით პაროლი"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('confirm_password')}
+            label="პაროლის დადასტურება"
             name="confirm_password"
             dependencies={['password']}
             rules={[
-              { required: true, message: t('confirm_password_required') },
+              { required: true, message: 'გთხოვთ დაადასტუროთ პაროლი' },
               validatePasswordMatch
             ]}
           >
             <Input.Password
-              placeholder={t('confirm_password_placeholder')}
+              placeholder="გაიმეორეთ პაროლი"
               size="large"
             />
           </Form.Item>
 
           <Form.Item
-            label={t('select_account_type')}
+            label="აირჩიეთ ანგარიშის ტიპი"
             name="role"
-            rules={[{ required: true, message: t('role_required') }]}
+            rules={[{ required: true, message: 'გთხოვთ აირჩიეთ ანგარიშის ტიპი' }]}
           >
             <Radio.Group size="large">
               <Space direction="vertical" style={{ width: '100%', gap: '8px' }}>
-                <Radio value="user">{t('user_account_desc')}</Radio>
-                <Radio value="dealer">{t('dealer_account_desc')}</Radio>
+                <Radio value="user">მომხმარებელი — ყიდვისა და ბიდის დაკელება</Radio>
+                <Radio value="dealer">დილერი — შეუძლია ავტომობილების დაკელება და გაყიდვა</Radio>
               </Space>
             </Radio.Group>
           </Form.Item>
 
           <div style={{ marginBottom: '24px' }}>
             <Text style={{ fontSize: '14px', color: '#6b7280' }}>
-              {t('agreement_text')}{' '}
-              <Link href="/terms" target="_blank">{t('terms')}</Link>{' '}
-              {t('and')}{' '}
-              <Link href="/privacy" target="_blank">{t('privacy_policy')}</Link>
+              ანგარიშის შექმნით, თქვენ ეთანხმებით ჩვენს{' '}
+              <Link href="/terms" target="_blank">მომსახურების პირობებს</Link>{' '}
+              და{' '}
+              <Link href="/privacy" target="_blank">კონფიდენციალობის პოლიტიკას</Link>
             </Text>
           </div>
 
@@ -258,7 +257,7 @@ const ModalAuth = ({
               icon={<UserAddOutlined />}
               loading={loading}
             >
-              {t('create_account')}
+              ანგარიშის შექმნა
             </Button>
           </Form.Item>
         </Form>
@@ -293,10 +292,10 @@ const ModalAuth = ({
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
       }}
     >
-      <Spin spinning={loading} tip={t('authenticating')}>
+      <Spin spinning={loading} tip="პირადობის დადასტურება...">
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-            {t('welcome_back')}
+            კეთილი იყო ბრუნება
           </Text>
         </div>
 
@@ -319,7 +318,7 @@ const ModalAuth = ({
 
         <div style={{ textAlign: 'center', marginTop: '24px' }}>
           <Text style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px', display: 'block' }}>
-            {t('or_continue_with')}
+            ან გააგრძელეთ
           </Text>
           <Space>
             <Button
@@ -328,7 +327,7 @@ const ModalAuth = ({
               onClick={() => handleSocialAuth('google')}
               style={{ borderRadius: '8px' }}
             >
-              {t('google')}
+              Google
             </Button>
             <Button
               icon={<FacebookOutlined />}
@@ -336,7 +335,7 @@ const ModalAuth = ({
               onClick={() => handleSocialAuth('facebook')}
               style={{ borderRadius: '8px' }}
             >
-              {t('facebook')}
+              Facebook
             </Button>
           </Space>
         </div>

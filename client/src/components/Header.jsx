@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Layout,
   Menu,
@@ -18,24 +19,47 @@ import {
   BellOutlined,
   MenuOutlined
 } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import NotificationModal from './NotificationModal';
 import ModalAuth from './ModalAuth';
 import ProfileModal from './ProfileModal';
-import { navigation } from '../mocks/_mockData';
+import LanguageSwitcher from './LanguageSwitcher';
+import CrmModulePickerModal from './CrmModulePickerModal';
 import { mockAuth } from '../mocks/_mockData';
 
 const { Header: AntHeader } = Layout;
 
 const Header = ({ isDark, onThemeToggle }) => {
-  const [current, setCurrent] = useState('home');
+  const { t } = useTranslation();
+  const location = useLocation();
   const [searchValue, setSearchValue] = useState('');
   const [authModalVisible, setAuthModalVisible] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [crmModalVisible, setCrmModalVisible] = useState(false);
 
-  const handleMenuClick = (e) => {
-    setCurrent(e.key);
+  // Get current page key from pathname
+  const getCurrentKey = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path === '/statistics') return 'statistics';
+    if (path === '/dashboard') return 'dashboard';
+    return 'home';
+  };
+
+  const navigation = [
+    { key: "home", label: t('navigation.home'), path: "/" },
+    { key: "statistics", label: t('navigation.statistics'), path: "/statistics" },
+    { key: "dashboard", label: t('navigation.dashboard'), path: "/dashboard" },
+    { key: "auctions", label: t('navigation.auctions'), path: "/auctions" },
+    { key: "logistics", label: t('navigation.logistics'), path: "/logistics" },
+    { key: "crm", label: t('navigation.crm'), path: "/crm" },
+    { key: "support", label: t('navigation.support'), path: "/support" }
+  ];
+
+  const handleMenuClick = () => {
+    // Navigation is handled by Link components, no state needed
   };
 
   const handleAuthModalOpen = () => {
@@ -105,6 +129,14 @@ const Header = ({ isDark, onThemeToggle }) => {
     setProfileModalVisible(false);
   };
 
+  const handleCrmModalOpen = () => {
+    setCrmModalVisible(true);
+  };
+
+  const handleCrmModalClose = () => {
+    setCrmModalVisible(false);
+  };
+
   const handleMenuItemClick = (key) => {
     console.log('ProfileModal menu item clicked:', key);
     // TODO-FX: Implement navigation logic based on menu item key
@@ -168,8 +200,7 @@ const Header = ({ isDark, onThemeToggle }) => {
       <Menu
         theme={isDark ? 'dark' : 'light'}
         mode="horizontal"
-        selectedKeys={[current]}
-        items={navigation}
+        selectedKeys={[getCurrentKey()]}
         onClick={handleMenuClick}
         style={{
           flex: 1,
@@ -177,6 +208,21 @@ const Header = ({ isDark, onThemeToggle }) => {
           borderBottom: 'none',
           background: 'transparent',
         }}
+        items={navigation.map(item => ({
+          key: item.key,
+          label: item.key === 'crm' ? (
+            <span
+              style={{ cursor: 'pointer', color: 'inherit' }}
+              onClick={handleCrmModalOpen}
+            >
+              {item.label}
+            </span>
+          ) : (
+            <Link to={item.path} style={{ color: 'inherit', textDecoration: 'none' }}>
+              {item.label}
+            </Link>
+          )
+        }))}
       />
 
       {/* Right Side Actions */}
@@ -196,6 +242,9 @@ const Header = ({ isDark, onThemeToggle }) => {
         />
         {/* TODO-FX: Responsive search input uses clamp() for full-width layout compatibility.
            Scales from 200px to 280px to prevent horizontal overflow on all screen sizes. */}
+
+        {/* Language Switcher */}
+        <LanguageSwitcher />
 
         {/* Theme Toggle */}
         <Space>
@@ -220,7 +269,7 @@ const Header = ({ isDark, onThemeToggle }) => {
               type="text"
               icon={<BellOutlined />}
               style={{ border: 'none' }}
-              title="Profile Notifications"
+              title={t('tooltips.profileNotifications')}
             />
           </Badge>
         </Dropdown>
@@ -230,7 +279,7 @@ const Header = ({ isDark, onThemeToggle }) => {
           type="text"
           icon={<MenuOutlined />}
           style={{ border: 'none', color: isDark ? '#fff' : '#000' }}
-          title="Open Profile Menu"
+              title={t('tooltips.openProfileMenu')}
           onClick={handleProfileModalOpen}
         />
 
@@ -241,7 +290,7 @@ const Header = ({ isDark, onThemeToggle }) => {
           style={{ borderRadius: '6px' }}
           onClick={handleAuthModalOpen}
         >
-          Login
+          შესვლა
         </Button>
       </Space>
 
@@ -263,6 +312,12 @@ const Header = ({ isDark, onThemeToggle }) => {
         onMenuItemClick={handleMenuItemClick}
         onRoleSwitch={handleRoleSwitch}
         onLogout={handleLogout}
+      />
+
+      {/* CRM Module Picker Modal */}
+      <CrmModulePickerModal
+        open={crmModalVisible}
+        onClose={handleCrmModalClose}
       />
     </AntHeader>
   );

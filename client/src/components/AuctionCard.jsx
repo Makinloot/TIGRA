@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   Carousel,
@@ -35,6 +36,7 @@ import CarNotificationModal from './CarNotificationModal';
 const { Title, Text } = Typography;
 
 const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
+  const { t } = useTranslation();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
@@ -234,7 +236,7 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
       {/* Action Buttons Section */}
       <div className="auction-card-actions-section">
         <Space size={8} wrap style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Tooltip title="Share car details">
+          <Tooltip title={t('modals.shareDetails')}>
             <Button
               type="text"
               icon={<ShareAltOutlined />}
@@ -253,7 +255,7 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
             </Button>
           </Tooltip>
 
-          <Tooltip title="Add to Favorites">
+          <Tooltip title={t('modals.addToFavorites')}>
             <Button
               type="text"
               icon={<HeartOutlined />}
@@ -272,7 +274,7 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
             </Button>
           </Tooltip>
 
-          <Tooltip title="Track price changes">
+          <Tooltip title={t('modals.trackPriceChanges')}>
             <Button
               type="text"
               icon={<BellOutlined />}
@@ -291,7 +293,7 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
             </Button>
           </Tooltip>
 
-          <Tooltip title="Add to compare">
+          <Tooltip title={t('modals.addToCompare')}>
             <Button
               type="text"
               icon={<PlusOutlined />}
@@ -346,7 +348,7 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
 
       {/* Track Price Modal */}
       <Modal
-        title="Track Price Notification"
+        title={t('modals.trackPrice')}
         open={trackPriceModalVisible}
         onCancel={() => {
           setTrackPriceModalVisible(false);
@@ -400,10 +402,10 @@ const AuctionCard = ({ auction, onQuickView, onAddToFavorites, onCompare }) => {
           style={{ width: '100%' }}
         >
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Checkbox value="Phone">Phone</Checkbox>
-            <Checkbox value="Email">Email</Checkbox>
-            <Checkbox value="Social Media">Social Media</Checkbox>
-            <Checkbox value="Website Only">Website Only</Checkbox>
+            <Checkbox value="Phone">{t('notifications.phone')}</Checkbox>
+            <Checkbox value="Email">{t('notifications.email')}</Checkbox>
+            <Checkbox value="Social Media">{t('notifications.socialMedia')}</Checkbox>
+            <Checkbox value="Website Only">{t('notifications.websiteOnly')}</Checkbox>
           </Space>
         </Checkbox.Group>
       </Modal>
