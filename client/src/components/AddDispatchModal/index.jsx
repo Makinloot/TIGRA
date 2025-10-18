@@ -1,18 +1,36 @@
-import React, { useState, useRef } from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import axios from "axios";
+import moment from "moment";
 import {
-  Modal, Steps, Form, Input, Select, DatePicker, InputNumber,
-  Button, Row, Col, Space, message
-} from 'antd';
-import { validateVIN, autoParseVIN } from '../../utils/cmsUtils';
-import { getMockDriverStats, mockAuctions, mockWarehouses } from '../../mocks/_mockData';
-import DriverAnalyticsPopup from '../DriverAnalyticsPopup';
+  Modal,
+  Steps,
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  InputNumber,
+  Button,
+  Row,
+  Col,
+  Space,
+  message,
+} from "antd";
+import { validateVIN } from "../../utils/cmsUtils";
+import {
+  getMockDriverStats,
+  mockAuctions,
+  mockWarehouses,
+} from "../../mocks/_mockData";
+import DriverAnalyticsPopup from "../DriverAnalyticsPopup";
 
 // TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+const t = (key) =>
+  key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
 const { Step } = Steps;
 const { Option } = Select;
+const MAX_VEHICLES = 5;
 
 const AddDispatchModal = ({ open, onClose, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,18 +39,27 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
   const [showDriverAnalytics, setShowDriverAnalytics] = useState(false);
   const formRef = useRef();
 
+  useEffect(() => {
+    if (open && formRef.current) {
+      const vehicles = formRef.current.getFieldValue("vehicles");
+      if (!vehicles || vehicles.length === 0) {
+        formRef.current.setFieldsValue({ vehicles: [{}] });
+      }
+    }
+  }, [open]);
+
   const steps = [
     {
-      title: t('core_info'),
-      description: t('vin_auction_warehouse'),
+      title: t("core_info"),
+      description: t("vin_auction_warehouse"),
     },
     {
-      title: t('logistics_details'),
-      description: t('pickup_delivery_dates'),
+      title: t("logistics_details"),
+      description: t("pickup_delivery_dates"),
     },
     {
-      title: t('financials'),
-      description: t('price_payment_status'),
+      title: t("financials"),
+      description: t("price_payment_status"),
     },
   ];
 
@@ -44,88 +71,150 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleVinBlur = async () => {
+  const handleVehicleVinBlur = async (value, index) => {
     const form = formRef.current;
     if (!form) return;
 
-    const vin = form.getFieldValue('vin');
-    if (!vin) return;
-
-    // Validate VIN
-    const isValid = validateVIN(vin);
-    if (!isValid) {
+    const vin = value?.toString().trim().toUpperCase();
+    if (!vin) {
       return;
     }
 
+    if (!validateVIN(vin)) {
+      message.error(t("invalid_vin_format"));
+      return;
+    }
+
+    const existingVehicles = form.getFieldValue("vehicles") || [];
+    const vehicles = existingVehicles.map((vehicle) => ({ ...vehicle }));
+    vehicles[index] = {
+      ...(vehicles[index] || {}),
+      vin,
+      make: "",
+      model: "",
+      year: "",
+    };
+    form.setFieldsValue({ vehicles });
+    form.validateFields([["vehicles", index, "vin"]]);
+
+    const hideMessage = message.loading(`${t("decoding_vin")}...`, 0);
+
     try {
-      // Auto-parse VIN for make, model, year
-      const vehicleInfo = await autoParseVIN(vin);
-      form.setFieldsValue({
-        make: vehicleInfo.make,
-        model: vehicleInfo.model,
-        year: vehicleInfo.year,
-      });
+      const { data } = await axios.get(
+        `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`
+      );
+
+      const decoded = data?.Results?.[0] ?? {};
+      const make = decoded?.Make?.trim() ?? "";
+      const model = decoded?.Model?.trim() ?? "";
+      const year = decoded?.ModelYear?.trim() ?? "";
+
+      const updatedVehicles = (form.getFieldValue("vehicles") || []).map(
+        (vehicle) => ({ ...vehicle })
+      );
+      updatedVehicles[index] = {
+        ...(updatedVehicles[index] || {}),
+        vin,
+        make,
+        model,
+        year,
+      };
+      form.setFieldsValue({ vehicles: updatedVehicles });
+
+      if (!make || !model || !year) {
+        message.warning(t("vin_decode_partial"));
+      } else {
+        message.success(t("vin_decode_success"));
+      }
     } catch (error) {
-      console.error('Failed to auto-parse VIN:', error);
-      message.error(t('failed_to_parse_vin'));
+      console.error("Failed to decode VIN via NHTSA:", error);
+      message.error(t("failed_to_parse_vin"));
+    } finally {
+      if (typeof hideMessage === "function") {
+        hideMessage();
+      }
     }
   };
 
-  const handleSubmit = async (values) => {
+  // API call to add new vehicle in the system at @POST /vehicles
+  const handleSubmit = async () => {
+    if (!formRef.current) return;
+
+    const values = formRef.current.getFieldsValue(true);
+    const { isPaid, storageFee, vehicles = [], ...sanitizedValues } = values;
+    const formattedPickupDate = sanitizedValues.pickupDate
+      ? moment(sanitizedValues.pickupDate).format("DD/MM")
+      : undefined;
+    const formattedDeliveryDate = sanitizedValues.deliveryDate
+      ? moment(sanitizedValues.deliveryDate).format("DD/MM")
+      : undefined;
+
+    const normalizedVehicles = (vehicles || [])
+      .map((vehicle = {}) => ({
+        ...vehicle,
+        vin: vehicle?.vin?.toString().trim().toUpperCase() || "",
+      }))
+      .filter((vehicle) => vehicle.vin);
+
+    if (normalizedVehicles.length === 0) {
+      message.error(t("vin_is_required"));
+      return;
+    }
+
+    const [primaryVehicle, ...additionalVehicles] = normalizedVehicles;
+
+    const normalizedValues = {
+      ...sanitizedValues,
+      pickupDate: formattedPickupDate,
+      deliveryDate: formattedDeliveryDate,
+    };
+
+    const flattenedExtraVehicles = {};
+    additionalVehicles.forEach((vehicle, index) => {
+      const suffix = index + 2;
+      flattenedExtraVehicles[`vin${suffix}`] = vehicle?.vin || "";
+      flattenedExtraVehicles[`make${suffix}`] = vehicle?.make || "";
+      flattenedExtraVehicles[`model${suffix}`] = vehicle?.model || "";
+      flattenedExtraVehicles[`year${suffix}`] = vehicle?.year || "";
+    });
+
+    // console.log("Dispatch form values:", normalizedValues);
     setIsSubmitting(true);
 
     try {
       // Auto-generate creation date
       const finalData = {
-        ...values,
-        creationDate: new Date().toISOString()
+        ...normalizedValues,
+        ...flattenedExtraVehicles,
+        vin: primaryVehicle.vin,
+        make: primaryVehicle.make,
+        model: primaryVehicle.model,
+        year: primaryVehicle.year,
+        additionalVehicles,
+        vehicles: normalizedVehicles,
+        creationDate: moment().format("DD/MM/YYYY HH:mm"),
       };
 
-      // TODO-FX: Replace with real API call.
-      // API Endpoint: POST /api/crm/dispatch
-      // Request Body: { vin: string, auction: string, warehouse: string, pickupDate: string,
-      // deliveryDate: string, driverNumber: string, route: string, price: number, isPaid: boolean,
-      // storageFee: number, comment: string, creationDate: string }
-      // Expected Response: Created dispatch object
-
-      console.log('Submitting dispatch:', finalData);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      message.success(t('dispatch_created_successfully'));
+      const response = await axios.post(
+        "http://localhost:3000/vehicles",
+        finalData
+      );
+      const data = response.data;
+      // console.log("DATA FROM API", data);
+      message.success(t("dispatch_created_successfully"));
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('Failed to create dispatch:', error);
-      message.error(t('failed_to_create_dispatch'));
+      console.error("Failed to create dispatch:", error);
+      message.error(t("failed_to_create_dispatch"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDriverNumberBlur = async (e) => {
-    const driverNumber = e.target.value?.trim();
-    if (!driverNumber) {
-      setDriverStats(null);
-      setShowDriverAnalytics(false);
-      return;
-    }
-
-    try {
-      // Fetch driver analytics (Spec §5.4)
-      const stats = getMockDriverStats(driverNumber);
-      setDriverStats(stats);
-      setShowDriverAnalytics(true);
-    } catch (error) {
-      console.error('Failed to fetch driver stats:', error);
-      setDriverStats(null);
-      setShowDriverAnalytics(false);
-    }
-  };
-
   const handleCancel = () => {
     formRef.current?.resetFields();
+    formRef.current?.setFieldsValue({ vehicles: [{}] });
     setCurrentStep(0);
     setDriverStats(null);
     setShowDriverAnalytics(false);
@@ -136,80 +225,181 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
     switch (step) {
       case 0: // Core Info
         return (
-          <Row gutter={[16, 16]}>
-            <Col xs={24}>
-              <Form.Item
-                name="vin"
-                label={t('vin')}
-                rules={[
-                  { required: true, message: t('vin_is_required') },
-                  {
-                    validator: (_, value) => {
-                      if (!value) return Promise.resolve();
-                      return validateVIN(value)
-                        ? Promise.resolve()
-                        : Promise.reject(new Error(t('invalid_vin_format')));
+          <Space direction="vertical" size="large" style={{ width: "100%" }}>
+            <Form.List name="vehicles">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map((field, index) => (
+                    <div
+                      key={field.key}
+                      style={{
+                        border: "1px solid #f0f0f0",
+                        borderRadius: 8,
+                        padding: 16,
+                      }}
+                    >
+                      <Row gutter={[16, 16]} align="middle">
+                        <Col xs={24} sm={index > 0 ? 16 : 24}>
+                          <Form.Item
+                            name={[field.name, "vin"]}
+                            fieldKey={[field.fieldKey, "vin"]}
+                            label={
+                              fields.length > 1
+                                ? `${t("vin")} #${index + 1}`
+                                : t("vin")
+                            }
+                            rules={[
+                              {
+                                validator: (_, value) => {
+                                  if (!value) {
+                                    return index === 0
+                                      ? Promise.reject(
+                                          new Error(t("vin_is_required"))
+                                        )
+                                      : Promise.resolve();
+                                  }
+                                  return validateVIN(value)
+                                    ? Promise.resolve()
+                                    : Promise.reject(
+                                        new Error(t("invalid_vin_format"))
+                                      );
+                                },
+                              },
+                            ]}
+                            validateTrigger="onBlur"
+                          >
+                            <Input
+                              placeholder={t("enter_17_character_vin")}
+                              onBlur={(e) =>
+                                handleVehicleVinBlur(e.target.value, field.name)
+                              }
+                              maxLength={17}
+                            />
+                          </Form.Item>
+                        </Col>
+                        {index > 0 && (
+                          <Col
+                            xs={24}
+                            sm={8}
+                            style={{
+                              display: "flex",
+                              justifyContent: "flex-end",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Button
+                              type="link"
+                              danger
+                              onClick={() => remove(field.name)}
+                            >
+                              {t("remove_vehicle")}
+                            </Button>
+                          </Col>
+                        )}
+                      </Row>
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={8}>
+                          <Form.Item
+                            name={[field.name, "make"]}
+                            fieldKey={[field.fieldKey, "make"]}
+                            label={t("make")}
+                          >
+                            <Input disabled />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={8}>
+                          <Form.Item
+                            name={[field.name, "model"]}
+                            fieldKey={[field.fieldKey, "model"]}
+                            label={t("model")}
+                          >
+                            <Input disabled />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={8}>
+                          <Form.Item
+                            name={[field.name, "year"]}
+                            fieldKey={[field.fieldKey, "year"]}
+                            label={t("year")}
+                          >
+                            <Input disabled />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={() => add({})}
+                    disabled={fields.length >= MAX_VEHICLES}
+                    block
+                    title={
+                      fields.length >= MAX_VEHICLES
+                        ? t("vehicle_limit_reached")
+                        : undefined
                     }
-                  }
-                ]}
-                validateTrigger="onBlur"
-              >
-                <Input
-                  placeholder={t('enter_17_character_vin')}
-                  onBlur={handleVinBlur}
-                  maxLength={17}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                name="make"
-                label={t('make')}
-              >
-                <Input disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                name="model"
-                label={t('model')}
-              >
-                <Input disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Form.Item
-                name="year"
-                label={t('year')}
-              >
-                <Input disabled />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="auction"
-                label={t('auction')}
-                rules={[{ required: true, message: t('auction_is_required') }]}
-              >
-                <Select
-                  placeholder={t('select_auction')}
-                  options={mockAuctions}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="warehouse"
-                label={t('warehouse')}
-                rules={[{ required: true, message: t('warehouse_is_required') }]}
-              >
-                <Select
-                  placeholder={t('select_warehouse')}
-                  options={mockWarehouses}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+                  >
+                    {t("add_another_vehicle")}
+                  </Button>
+                </>
+              )}
+            </Form.List>
+
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="auction"
+                  label={t("auction")}
+                  rules={[{ required: true, message: t("auction_is_required") }]}
+                >
+                  <Select
+                    placeholder={t("select_auction")}
+                    options={[
+                      {
+                        value: "copart",
+                        label: "Copart",
+                      },
+                      {
+                        value: "iaai",
+                        label: "IAAI",
+                      },
+                      {
+                        value: "manheim",
+                        label: "Manheim",
+                      },
+                    ]}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="warehouse"
+                  label={t("warehouse")}
+                  rules={[
+                    { required: true, message: t("warehouse_is_required") },
+                  ]}
+                >
+                  <Select
+                    placeholder={t("select_warehouse")}
+                    options={[
+                      {
+                        value: "Barami",
+                        label: "Barami",
+                      },
+                      {
+                        value: "Poti",
+                        label: "Poti",
+                      },
+                      {
+                        value: "Tbilisi",
+                        label: "Tbilisi",
+                      },
+                    ]}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Space>
         );
 
       case 1: // Logistics Details
@@ -218,46 +408,49 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             <Col xs={24} sm={12}>
               <Form.Item
                 name="pickupDate"
-                label={t('pickup_date')}
-                rules={[{ required: true, message: t('pickup_date_is_required') }]}
+                label={t("pickup_date")}
+                rules={[
+                  { required: true, message: t("pickup_date_is_required") },
+                ]}
               >
                 <DatePicker
-                  style={{ width: '100%' }}
-                  placeholder={t('select_pickup_date')}
+                  style={{ width: "100%" }}
+                  placeholder={t("select_pickup_date")}
                 />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="deliveryDate"
-                label={t('delivery_date')}
-                rules={[{ required: true, message: t('delivery_date_is_required') }]}
+                label={t("delivery_date")}
+                rules={[
+                  { required: true, message: t("delivery_date_is_required") },
+                ]}
               >
                 <DatePicker
-                  style={{ width: '100%' }}
-                  placeholder={t('select_delivery_date')}
+                  style={{ width: "100%" }}
+                  placeholder={t("select_delivery_date")}
                 />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="driverNumber"
-                label={t('driver_number')}
-                rules={[{ required: true, message: t('driver_number_is_required') }]}
+                label={t("driver_number")}
+                rules={[
+                  { required: true, message: t("driver_number_is_required") },
+                ]}
               >
-                <Input
-                  placeholder={t('enter_driver_number')}
-                  onBlur={handleDriverNumberBlur}
-                />
+                <Input placeholder={t("enter_driver_number")} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="route"
-                label={t('route')}
-                rules={[{ required: true, message: t('route_is_required') }]}
+                label={t("route")}
+                rules={[{ required: true, message: t("route_is_required") }]}
               >
-                <Input placeholder={t('enter_route_from_to')} />
+                <Input placeholder={t("enter_route_from_to")} />
               </Form.Item>
             </Col>
           </Row>
@@ -269,56 +462,57 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             <Col xs={24} sm={12}>
               <Form.Item
                 name="price"
-                label={t('price')}
-                rules={[{ required: true, message: t('price_is_required') }]}
+                label={t("price")}
+                rules={[{ required: true, message: t("price_is_required") }]}
               >
                 <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder={t('enter_price')}
+                  style={{ width: "100%" }}
+                  placeholder={t("enter_price")}
                   prefix="$"
                   min={0}
                   precision={2}
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
+            {/* <Col xs={24} sm={12}>
               <Form.Item
                 name="isPaid"
-                label={t('payment_status')}
-                rules={[{ required: true, message: t('payment_status_is_required') }]}
+                label={t("payment_status")}
+                rules={[
+                  { required: true, message: t("payment_status_is_required") },
+                ]}
               >
-                <Select placeholder={t('select_payment_status')}>
-                  <Option value={false}>{t('pending')}</Option>
-                  <Option value={true}>{t('paid')}</Option>
+                <Select placeholder={t("select_payment_status")}>
+                  <Option value={false}>{t("pending")}</Option>
+                  <Option value={true}>{t("paid")}</Option>
                 </Select>
               </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
+            </Col> */}
+            {/* <Col xs={24} sm={12}>
               <Form.Item
                 name="storageFee"
-                label={t('storage_fee')}
-                rules={[{ required: true, message: t('storage_fee_is_required') }]}
+                label={t("storage_fee")}
+                rules={[
+                  { required: true, message: t("storage_fee_is_required") },
+                ]}
               >
                 <InputNumber
-                  style={{ width: '100%' }}
-                  placeholder={t('enter_storage_fee')}
+                  style={{ width: "100%" }}
+                  placeholder={t("enter_storage_fee")}
                   prefix="$"
                   min={0}
                   precision={2}
                   initialValue={0}
                 />
               </Form.Item>
-            </Col>
+            </Col> */}
             <Col xs={24}>
               <Form.Item
                 name="comment"
-                label={t('comment')}
-                rules={[{ required: true, message: t('comment_is_required') }]}
+                label={t("comment")}
+                rules={[{ required: true, message: t("comment_is_required") }]}
               >
-                <Input.TextArea
-                  placeholder={t('enter_comment')}
-                  rows={3}
-                />
+                <Input.TextArea placeholder={t("enter_comment")} rows={3} />
               </Form.Item>
             </Col>
           </Row>
@@ -335,13 +529,23 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
 
     switch (step) {
       case 0:
-        return form.getFieldValue('vin') && form.getFieldValue('auction') && form.getFieldValue('warehouse');
+        return (
+          (form.getFieldValue("vehicles")?.[0]?.vin || "") &&
+          form.getFieldValue("auction") &&
+          form.getFieldValue("warehouse")
+        );
       case 1:
-        return form.getFieldValue('pickupDate') && form.getFieldValue('deliveryDate') &&
-               form.getFieldValue('driverNumber') && form.getFieldValue('route');
+        return (
+          form.getFieldValue("pickupDate") &&
+          form.getFieldValue("deliveryDate") &&
+          form.getFieldValue("driverNumber") &&
+          form.getFieldValue("route")
+        );
       case 2:
-        return form.getFieldValue('price') !== undefined && form.getFieldValue('isPaid') !== undefined &&
-               form.getFieldValue('storageFee') !== undefined && form.getFieldValue('comment');
+        return (
+          form.getFieldValue("price") !== undefined &&
+          form.getFieldValue("comment")
+        );
       default:
         return false;
     }
@@ -357,17 +561,17 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
 
   return (
     <Modal
-      title={t('add_new_dispatch')}
+      title={t("add_new_dispatch")}
       open={open}
       onCancel={handleCancel}
       width={800}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
-          {t('cancel')}
+          {t("cancel")}
         </Button>,
         currentStep > 0 && (
           <Button key="prev" onClick={prev}>
-            {t('previous')}
+            {t("previous")}
           </Button>
         ),
         currentStep < steps.length - 1 ? (
@@ -377,7 +581,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             onClick={next}
             disabled={!canProceed()}
           >
-            {t('next')}
+            {t("next")}
           </Button>
         ) : (
           <Button
@@ -387,7 +591,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             onClick={() => formRef.current?.submit()}
             disabled={!canSubmit()}
           >
-            {t('create_dispatch')}
+            {t("create_dispatch")}
           </Button>
         ),
       ]}
@@ -408,21 +612,19 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         ref={formRef}
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={{
-          isPaid: false,
-        }}
+        initialValues={{ vehicles: [{}] }}
       >
-          {renderStepContent(currentStep)}
-        </Form>
+        {renderStepContent(currentStep)}
+      </Form>
 
-        <DriverAnalyticsPopup
-          stats={driverStats}
-          open={showDriverAnalytics}
-          onClose={() => setShowDriverAnalytics(false)}
-        />
-      </Modal>
-    );
-  };
+      <DriverAnalyticsPopup
+        stats={driverStats}
+        open={showDriverAnalytics}
+        onClose={() => setShowDriverAnalytics(false)}
+      />
+    </Modal>
+  );
+};
 
 AddDispatchModal.propTypes = {
   open: PropTypes.bool.isRequired,

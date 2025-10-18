@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Row, Col, Card, Steps, Descriptions, Image, Spin, Alert } from 'antd';
-import PropTypes from 'prop-types';
-import { getPublicTrackingData } from '../../mocks/_mockData';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { Row, Col, Card, Steps, Descriptions, Image, Spin, Alert } from "antd";
+import PropTypes from "prop-types";
+import { getPublicTrackingData } from "../../mocks/_mockData";
 
 // TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+const t = (key) =>
+  key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
 const StatusPage = () => {
   const { vin } = useParams();
@@ -15,15 +16,15 @@ const StatusPage = () => {
 
   // Define the fixed status progression steps
   const STEPS = [
-    { key: 'at_auction', title: t('at_auction') },
-    { key: 'in_transit', title: t('in_transit') },
-    { key: 'at_warehouse', title: t('at_warehouse') },
-    { key: 'delivered', title: t('delivered') }
+    { key: "at_auction", title: t("at_auction") },
+    { key: "in_transit", title: t("in_transit") },
+    { key: "at_warehouse", title: t("at_warehouse") },
+    { key: "delivered", title: t("delivered") },
   ];
 
   // Function to map dispatch status to step index
   const getStatusIndex = (status) => {
-    const stepIndex = STEPS.findIndex(step => step.key === status);
+    const stepIndex = STEPS.findIndex((step) => step.key === status);
     return stepIndex >= 0 ? stepIndex : 0; // Default to first step if status not found
   };
 
@@ -38,18 +39,18 @@ const StatusPage = () => {
       // Expected Data: { vin: '...', status: 'in_transit', estimatedDelivery: '...', photos: { pickup: [...], delivery: [...] }, details: { make: '...', model: '...' }, history: [{ date: '...', status: '...' }] }
 
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Get mock data from the shared mock data function
       const mockData = getPublicTrackingData(vin);
 
       if (!mockData) {
-        throw new Error('VIN not found');
+        throw new Error("VIN not found");
       }
 
       setDispatchData(mockData);
     } catch {
-      setError(t('vin_not_found'));
+      setError(t("vin_not_found"));
     } finally {
       setLoading(false);
     }
@@ -65,10 +66,10 @@ const StatusPage = () => {
     return (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh'
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "60vh",
         }}
       >
         <Spin size="large" />
@@ -78,10 +79,10 @@ const StatusPage = () => {
 
   if (error) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div style={{ padding: "24px" }}>
         <Alert
           message={error}
-          description={t('please_check_vin_and_try_again')}
+          description={t("please_check_vin_and_try_again")}
           type="error"
           showIcon
         />
@@ -96,20 +97,20 @@ const StatusPage = () => {
   const statusIndex = getStatusIndex(dispatchData.status);
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: "24px" }}>
       {/* Status Steps */}
-      <Card style={{ marginBottom: '24px' }}>
+      <Card style={{ marginBottom: "24px" }}>
         <Steps current={statusIndex} size="small">
           {STEPS.map((step, index) => (
             <Steps.Step
               key={step.key}
               title={step.title}
               description={
-                index === statusIndex ?
-                  t('current_status') :
-                  index < statusIndex ?
-                    t('completed') :
-                    t('pending')
+                index === statusIndex
+                  ? t("current_status")
+                  : index < statusIndex
+                  ? t("completed")
+                  : t("pending")
               }
             />
           ))}
@@ -120,18 +121,18 @@ const StatusPage = () => {
       <Row gutter={[24, 24]}>
         {/* Left Column: Vehicle Details */}
         <Col xs={24} md={12}>
-          <Card title={t('vehicle_details')} bordered={false}>
+          <Card title={t("vehicle_details")} bordered={false}>
             <Descriptions column={1} size="small">
-              <Descriptions.Item label={t('vin')}>
+              <Descriptions.Item label={t("vin")}>
                 {dispatchData.vin}
               </Descriptions.Item>
-              <Descriptions.Item label={t('make')}>
+              <Descriptions.Item label={t("make")}>
                 {dispatchData.details.make}
               </Descriptions.Item>
-              <Descriptions.Item label={t('model')}>
+              <Descriptions.Item label={t("model")}>
                 {dispatchData.details.model}
               </Descriptions.Item>
-              <Descriptions.Item label={t('estimated_delivery')}>
+              <Descriptions.Item label={t("estimated_delivery")}>
                 {new Date(dispatchData.estimatedDelivery).toLocaleDateString()}
               </Descriptions.Item>
             </Descriptions>
@@ -140,20 +141,21 @@ const StatusPage = () => {
 
         {/* Right Column: Photos */}
         <Col xs={24} md={12}>
-          <Card title={t('pickup_photos')} bordered={false}>
-            {dispatchData.photos.pickup && dispatchData.photos.pickup.length > 0 ? (
+          <Card title={t("pickup_photos")} bordered={false}>
+            {dispatchData.photos.pickup &&
+            dispatchData.photos.pickup.length > 0 ? (
               <Image.PreviewGroup>
                 <Row gutter={[8, 8]}>
                   {dispatchData.photos.pickup.map((photo, index) => (
                     <Col key={index} xs={24} sm={12} md={8}>
                       <Image
                         src={photo}
-                        alt={`${t('pickup_photo')} ${index + 1}`}
+                        alt={`${t("pickup_photo")} ${index + 1}`}
                         style={{
-                          width: '100%',
-                          height: '120px',
-                          objectFit: 'cover',
-                          borderRadius: '4px'
+                          width: "100%",
+                          height: "120px",
+                          objectFit: "cover",
+                          borderRadius: "4px",
                         }}
                       />
                     </Col>
@@ -161,12 +163,14 @@ const StatusPage = () => {
                 </Row>
               </Image.PreviewGroup>
             ) : (
-              <div style={{
-                textAlign: 'center',
-                padding: '40px',
-                color: '#999'
-              }}>
-                {t('no_photos_available')}
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px",
+                  color: "#999",
+                }}
+              >
+                {t("no_photos_available")}
               </div>
             )}
           </Card>
