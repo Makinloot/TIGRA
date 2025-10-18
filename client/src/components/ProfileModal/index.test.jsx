@@ -36,12 +36,19 @@ vi.mock('@ant-design/icons', () => ({
   BellOutlined: () => <span data-testid="bell-icon">BellOutlined</span>,
   LogoutOutlined: () => <span data-testid="logout-icon">LogoutOutlined</span>,
   UserOutlined: () => <span data-testid="user-icon">UserOutlined</span>,
-  ShopOutlined: () => <span data-testid="shop-icon">ShopOutlined</span>
+  ShopOutlined: () => <span data-testid="shop-icon">ShopOutlined</span>,
+  GlobalOutlined: () => <span data-testid="global-icon">GlobalOutlined</span>
 }));
 
 // Mock i18n
 vi.mock('../../i18n', () => ({
   t: (key) => key
+}));
+
+// Mock react-router-dom
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate
 }));
 
 describe('ProfileModal', () => {
@@ -113,5 +120,21 @@ describe('ProfileModal', () => {
     render(<ProfileModal {...mockProps} />);
     const modal = screen.getByTestId('profile-modal');
     expect(modal).toHaveClass('profile-modal');
+  });
+
+  it('renders track vehicle button with global icon', () => {
+    render(<ProfileModal {...mockProps} />);
+    const trackButton = screen.getByText('ავტომობილის თვალყური');
+    expect(trackButton).toBeInTheDocument();
+    expect(screen.getByTestId('global-icon')).toBeInTheDocument();
+  });
+
+  it('navigates to track page and closes modal when track button is clicked', () => {
+    render(<ProfileModal {...mockProps} />);
+    const trackButton = screen.getByText('ავტომობილის თვალყური');
+    fireEvent.click(trackButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/track');
+    expect(mockProps.onClose).toHaveBeenCalledTimes(1);
   });
 });

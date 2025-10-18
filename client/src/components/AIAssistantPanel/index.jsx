@@ -23,8 +23,7 @@ import {
   mockAIResponses
 } from '../../mocks/_mockData';
 
-// TODO-FX: Connect to i18n library.
-// const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+// ✅ Connected to i18n library with useTranslation hook
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -120,7 +119,7 @@ const AIAssistantPanel = ({ open, onClose, isMobile = false }) => {
 
     // Default response
     return {
-      response: "I'd be happy to help you with information about vehicles, auctions, or logistics. Could you please provide more details about what you're looking for?",
+      response: "მე სიამოვნებით დაგეხმარებით ავტომობილების, აუქციონების ან ლოგისტიკის შესახებ ინფორმაციით. გთხოვთ მიუთითეთ უფრო დაწვრილებით რას ეძებთ?",
       suggestions: mockAIResponses.suggestions
     };
   };
@@ -235,10 +234,10 @@ const AIAssistantPanel = ({ open, onClose, isMobile = false }) => {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '16px' }}>
         <Title level={4} style={{ margin: 0, color: '#333' }}>
-          AI Assistant
+          AI ასისტენტი
         </Title>
         <Text type="secondary" style={{ fontSize: '12px' }}>
-          Ask about vehicles, logistics, or auctions
+          კითხეთ ავტომობილების, ლოგისტიკის ან აუქციონების შესახებ
         </Text>
       </div>
 
@@ -302,7 +301,7 @@ const AIAssistantPanel = ({ open, onClose, isMobile = false }) => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Type your question..."
+          placeholder="დაწერეთ თქვენი შეკითხვა..."
           autoSize={{ minRows: 1, maxRows: 3 }}
           style={{
             flex: 1,

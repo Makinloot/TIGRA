@@ -1,0 +1,24 @@
+/* CrmCancelled page styles */
+
+/* Inherit row coloring styles from DispatchDashboard if needed */
+.dispatch-row-new {
+  background-color: #f6ffed;
+}
+
+.dispatch-row-overdue {
+  background-color: #fff2f0;
+}
+
+.dispatch-row-paid {
+  background-color: #f0f9ff;
+}
+
+.dispatch-row-on-hold {
+  background: repeating-linear-gradient(
+    45deg,
+    #fff7e6,
+    #fff7e6 10px,
+    #ffd591 10px,
+    #ffd591 20px
+  );
+}

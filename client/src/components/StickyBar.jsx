@@ -6,24 +6,24 @@ const StickyBar = () => {
   const actions = [
     {
       key: 'auction',
-      label: 'Join Live Auction',
+      label: 'ცოცხალ აუქციონში გაწევრდეთ',
       icon: <PlayCircleOutlined />,
       type: 'primary',
-      action: () => console.log('Join Live Auction clicked')
+      action: () => console.log('ცოცხალ აუქციონში გაწევრდეთ clicked')
     },
     {
       key: 'catalog',
-      label: 'View Catalog',
+      label: 'კატალოგი',
       icon: <AppstoreOutlined />,
       type: 'default',
-      action: () => console.log('View Catalog clicked')
+      action: () => console.log('კატალოგი clicked')
     },
     {
       key: 'login',
-      label: 'Login to CRM',
+      label: 'CRM-ში შესვლა',
       icon: <LoginOutlined />,
       type: 'link',
-      action: () => console.log('Login to CRM clicked')
+      action: () => console.log('CRM-ში შესვლა clicked')
     }
   ];
 

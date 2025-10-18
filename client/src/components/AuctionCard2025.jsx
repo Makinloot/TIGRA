@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import './AuctionCard2025.css';
 import {
   Card,
@@ -38,14 +39,18 @@ const AuctionCard2025 = ({
   auction,
   onPlaceBid,
   onViewDetails,
+  onImageClick,
   liveUpdateInterval = 5000,
   onBidNotification,
   visualTheme,
-  sectionId
+  sectionId,
+  isCatalog = false
 }) => {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const [currentBid, setCurrentBid] = useState(auction.currentBid);
-  const [timeLeft, setTimeLeft] = useState(auction.timeLeft || 'Loading...');
+  const [timeLeft, setTimeLeft] = useState(auction.timeLeft || t('loadingStates.timeLeft'));
+  const endedStatus = t('auctionStatus.ended');
   const [biddersCount, setBiddersCount] = useState(auction.biddersCount || auction.bids || 0);
 
   // Image gallery state
@@ -66,7 +71,13 @@ const AuctionCard2025 = ({
   // Get all available photos (main + additional)
   const allPhotos = auction.photos || [];
   const mainPhoto = allPhotos[currentImageIndex] || 'https://via.placeholder.com/400x250';
-  const thumbnailPhotos = allPhotos.slice(0, 6); // Show first 6 as thumbnails
+  const thumbnailPhotos = allPhotos.slice(0, 6).filter((_, index) => index !== currentImageIndex); // Show up to 5 additional thumbnails, excluding main image
+
+  // Map thumbnail index to actual photo index (accounting for filtered main image)
+  const getPhotoIndexFromThumbnailIndex = (thumbnailIndex) => {
+    const allIndices = allPhotos.slice(0, 6).map((_, i) => i).filter(i => i !== currentImageIndex);
+    return allIndices[thumbnailIndex];
+  };
 
   // Available avatars for bidding simulation
   const availableAvatars = useMemo(() => [
@@ -236,12 +247,12 @@ const AuctionCard2025 = ({
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
       } else {
-        setTimeLeft('ENDED');
+        setTimeLeft(t('auctionStatus.ended'));
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [auction.endTime]);
+  }, [auction.endTime, t]);
 
   const simulateBid = useCallback(() => {
     const bidIncrease = Math.floor(Math.random() * 500) + 100; // $100-$600 increase
@@ -357,23 +368,28 @@ const AuctionCard2025 = ({
   const getConditionGrade = (condition) => {
     switch (condition?.toLowerCase()) {
       case 'excellent': return 'A+';
-      case 'very good': return 'A';
-      case 'good': return 'B';
-      case 'fair': return 'C';
-      case 'poor': return 'D';
+      case 'very good': return t('auctionStatus.veryGood');
+      case 'good': return t('auctionStatus.good');
+      case 'fair': return t('auctionStatus.fair');
+      case 'poor': return t('auctionStatus.poor');
       default: return 'N/A';
     }
   };
 
   // Image gallery handlers
   const handleImageClick = () => {
-    setPreviewVisible(true);
-    setZoomLevel(1);
-    setZoomPosition({ x: 0, y: 0 });
+    if (onImageClick) {
+      onImageClick(auction.id);
+    } else {
+      setPreviewVisible(true);
+      setZoomLevel(1);
+      setZoomPosition({ x: 0, y: 0 });
+    }
   };
 
-  const handleThumbnailClick = (index) => {
-    setCurrentImageIndex(index);
+  const handleThumbnailClick = (thumbnailIndex) => {
+    const actualPhotoIndex = getPhotoIndexFromThumbnailIndex(thumbnailIndex);
+    setCurrentImageIndex(actualPhotoIndex);
   };
 
   const handlePreviousImage = () => {
@@ -454,7 +470,7 @@ const AuctionCard2025 = ({
     if (auction.isLive) {
       badges.push(
         <Tag key="live" style={getBadgeStyle('live')}>
-          🔴 LIVE
+          🔴 {t('auctions.live')}
         </Tag>
       );
     }
@@ -462,7 +478,7 @@ const AuctionCard2025 = ({
     if (auction.isHotDeal) {
       badges.push(
         <Tag key="hot" style={getBadgeStyle('hot')}>
-          🔥 HOT DEAL
+          🔥 {t('auctions.hotDeal')}
         </Tag>
       );
     }
@@ -470,7 +486,7 @@ const AuctionCard2025 = ({
     if (auction.timeLeft && typeof auction.timeLeft === 'string' && auction.timeLeft.includes('h') && parseInt(auction.timeLeft) <= 2) {
       badges.push(
         <Tag key="ending" style={getBadgeStyle('ending')}>
-          ⏰ ENDING SOON
+          ⏰ {t('auctions.endingSoon')}
         </Tag>
       );
     }
@@ -571,13 +587,13 @@ const AuctionCard2025 = ({
             )}
             {auction.verifiedSeller && sectionId !== 'featured-auctions' && (
               <Tag color="green" style={{ fontSize: '10px', padding: '2px 6px' }}>
-                <CheckCircleOutlined /> Verified
+                <CheckCircleOutlined /> {t('auctions.verified')}
               </Tag>
             )}
           </Space>
         </div>
 
-        {/* Ship Ready and Verified icons below image for Featured Auctions and WILL FINISH SOON */}
+        {/* {t('auctions.shipReady')} and Verified icons below image for Featured Auctions and WILL FINISH SOON */}
         {(sectionId === 'featured-auctions') && (
           <div style={{
             position: 'absolute',
@@ -601,7 +617,7 @@ const AuctionCard2025 = ({
                 backdropFilter: 'blur(4px)'
               }}>
                 <TruckOutlined style={{ fontSize: '12px' }} />
-                Ship Ready
+                {t('auctions.shipReady')}
               </div>
             )}
             {auction.verifiedSeller && (
@@ -683,32 +699,35 @@ const AuctionCard2025 = ({
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
           }}>
-            {thumbnailPhotos.map((photo, index) => (
-              <div
-                key={index}
-                onClick={() => handleThumbnailClick(index)}
-                style={{
-                  width: '60px',
-                  height: '40px',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  border: currentImageIndex === index ? `2px solid ${themeColors.primary}` : '2px solid #e5e7eb',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  flexShrink: 0
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = themeColors.primary;
-                  e.target.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = currentImageIndex === index ? themeColors.primary : '#e5e7eb';
-                  e.target.style.transform = 'scale(1)';
-                }}
+            {thumbnailPhotos.map((photo, thumbnailIndex) => {
+              const actualPhotoIndex = getPhotoIndexFromThumbnailIndex(thumbnailIndex);
+              const isActive = currentImageIndex === actualPhotoIndex;
+              return (
+                <div
+                  key={thumbnailIndex}
+                  onClick={() => handleThumbnailClick(thumbnailIndex)}
+                  style={{
+                    width: '60px',
+                    height: '40px',
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    border: isActive ? `2px solid ${themeColors.primary}` : '2px solid #e5e7eb',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.borderColor = themeColors.primary;
+                    e.target.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.borderColor = isActive ? themeColors.primary : '#e5e7eb';
+                    e.target.style.transform = 'scale(1)';
+                  }}
               >
                 <img
                   src={photo}
-                  alt={`Thumbnail ${index + 1}`}
+                  alt={`Thumbnail ${thumbnailIndex + 1}`}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -716,8 +735,9 @@ const AuctionCard2025 = ({
                   }}
                   loading="lazy"
                 />
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -739,7 +759,7 @@ const AuctionCard2025 = ({
           {/* Sub Info */}
           <Space size={12} wrap>
             <Text style={{ fontSize: '13px', color: '#6b7280' }}>
-              {formatMileage(auction.mileage)} miles
+              {formatMileage(auction.mileage)} {t('auctions.miles')}
             </Text>
             <Text style={{ fontSize: '13px', color: '#6b7280' }}>
               {auction.engine || '2.0L'} • {auction.transmission || 'Auto'}
@@ -771,7 +791,7 @@ const AuctionCard2025 = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <Text style={{ fontSize: '12px', color: '#6b7280' }}>
-                Current Bid
+                {t('auctions.currentBid')}
               </Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <DollarOutlined style={{ color: '#2563eb' }} />
@@ -788,20 +808,20 @@ const AuctionCard2025 = ({
             <div style={{ textAlign: 'right' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <ClockCircleOutlined style={{
-                  color: timeLeft === 'ENDED' ? '#ef4444' : '#f59e0b',
+                  color: timeLeft === endedStatus ? '#ef4444' : '#f59e0b',
                   fontSize: '14px'
                 }} />
                 <Text style={{
                   fontSize: '14px',
                   fontWeight: 'bold',
-                  color: timeLeft === 'ENDED' ? '#ef4444' : '#f59e0b'
+                  color: timeLeft === endedStatus ? '#ef4444' : '#f59e0b'
                 }}>
                   {timeLeft}
                 </Text>
               </div>
 
               {/* Animated countdown ring for ending soon */}
-              {timeLeft !== 'ENDED' && typeof timeLeft === 'string' && timeLeft.includes('h') && parseInt(timeLeft) <= 2 && (
+              {timeLeft !== endedStatus && typeof timeLeft === 'string' && timeLeft.includes('h') && parseInt(timeLeft) <= 2 && (
                 <Progress
                   type="circle"
                   percent={Math.min(100, (parseInt(timeLeft) / 2) * 100)}
@@ -825,7 +845,7 @@ const AuctionCard2025 = ({
                 height: '40px',
                 fontWeight: '600',
                 borderRadius: '8px',
-                background: 'linear-gradient(45deg, #2563eb, #1d4ed8)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%)',
                 border: 'none',
                 boxShadow: isHovered ? '0 4px 12px rgba(37, 99, 235, 0.4)' : 'none',
                 transition: 'all 0.2s ease'
@@ -835,47 +855,49 @@ const AuctionCard2025 = ({
                 onPlaceBid?.(auction.id);
               }}
             >
-              Place Bid
+              {t('auctions.placeBid')}
             </Button>
 
-            {/* Bidders Count Indicator */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '6px 10px',
-                backgroundColor: (auction.biddersCount || auction.bids || 0) > 0 ? '#f3f4f6' : '#f9fafb',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600',
-                color: (auction.biddersCount || auction.bids || 0) > 0 ? '#374151' : '#9ca3af',
-                border: `1px solid ${(auction.biddersCount || auction.bids || 0) > 0 ? '#e5e7eb' : '#f3f4f6'}`,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setBiddersPopupVisible(true);
-              }}
-              onMouseEnter={(e) => {
-                const totalBidders = auction.biddersCount || auction.bids || 0;
-                e.target.style.backgroundColor = totalBidders > 0 ? '#e5e7eb' : '#f3f4f6';
-                e.target.style.borderColor = totalBidders > 0 ? '#d1d5db' : '#e5e7eb';
-                if (totalBidders === 0) {
-                  e.target.style.color = '#6b7280';
-                }
-              }}
-              onMouseLeave={(e) => {
-                const totalBidders = auction.biddersCount || auction.bids || 0;
-                e.target.style.backgroundColor = totalBidders > 0 ? '#f3f4f6' : '#f9fafb';
-                e.target.style.borderColor = totalBidders > 0 ? '#e5e7eb' : '#f3f4f6';
-                e.target.style.color = totalBidders > 0 ? '#374151' : '#9ca3af';
-              }}
-            >
-              <UserOutlined style={{ fontSize: '12px' }} />
-              {auction.biddersCount || auction.bids || 0}
-            </div>
+            {/* Bidders Count Indicator - Hide for catalog items */}
+            {!isCatalog && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 10px',
+                  backgroundColor: (auction.biddersCount || auction.bids || 0) > 0 ? '#f3f4f6' : '#f9fafb',
+                  borderRadius: '20px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: (auction.biddersCount || auction.bids || 0) > 0 ? '#374151' : '#9ca3af',
+                  border: `1px solid ${(auction.biddersCount || auction.bids || 0) > 0 ? '#e5e7eb' : '#f3f4f6'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBiddersPopupVisible(true);
+                }}
+                onMouseEnter={(e) => {
+                  const totalBidders = auction.biddersCount || auction.bids || 0;
+                  e.target.style.backgroundColor = totalBidders > 0 ? '#e5e7eb' : '#f3f4f6';
+                  e.target.style.borderColor = totalBidders > 0 ? '#d1d5db' : '#e5e7eb';
+                  if (totalBidders === 0) {
+                    e.target.style.color = '#6b7280';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const totalBidders = auction.biddersCount || auction.bids || 0;
+                  e.target.style.backgroundColor = totalBidders > 0 ? '#f3f4f6' : '#f9fafb';
+                  e.target.style.borderColor = totalBidders > 0 ? '#e5e7eb' : '#f3f4f6';
+                  e.target.style.color = totalBidders > 0 ? '#374151' : '#9ca3af';
+                }}
+              >
+                <UserOutlined style={{ fontSize: '12px' }} />
+                {auction.biddersCount || auction.bids || 0}
+              </div>
+            )}
 
             <Button
               type="text"
@@ -900,7 +922,9 @@ const AuctionCard2025 = ({
                 e.target.style.borderColor = '#e5e7eb';
                 e.target.style.color = '#6b7280';
               }}
-            />
+            >
+              {isCatalog ? 'Contact' : ''}
+            </Button>
           </div>
         </Space>
       </div>
@@ -1482,7 +1506,7 @@ const AuctionCard2025 = ({
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Current Bid
+                {t('auctions.currentBid')}
               </Text>
               <div style={{
                 fontSize: '36px',
@@ -1518,7 +1542,7 @@ const AuctionCard2025 = ({
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: timeLeft === 'ENDED' ? '#ef4444' : '#dc2626',
+                  color: timeLeft === endedStatus ? '#ef4444' : '#dc2626',
                   marginTop: '4px'
                 }}>
                   {timeLeft}
@@ -1820,11 +1844,11 @@ const AuctionCard2025 = ({
             borderTop: '1px solid rgba(148, 163, 184, 0.2)'
           }}>
             <Space direction="vertical" style={{ width: '100%', gap: '16px' }}>
-              {/* Place Bid Button with Bidders Count */}
+              {/* {t('auctions.placeBid')} Button with Bidders Count */}
               <div style={{ position: 'relative' }}>
                 <Button
                   type="primary"
-                  icon={<ThunderboltOutlined />}
+                  icon={isCatalog ? <ArrowRightOutlined /> : <ThunderboltOutlined />}
                   size="large"
                   block
                   style={{
@@ -1832,7 +1856,7 @@ const AuctionCard2025 = ({
                     fontWeight: '700',
                     fontSize: '16px',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%)',
                     border: 'none',
                     boxShadow: '0 8px 32px rgba(37, 99, 235, 0.3)',
                     transition: 'all 0.3s ease'
@@ -1850,30 +1874,32 @@ const AuctionCard2025 = ({
                     handleModalClose();
                   }}
                 >
-                  Place Your Bid
+                  {isCatalog ? 'Buy Now' : 'Place Your Bid'}
                 </Button>
 
-                {/* Bidders Count Indicator for Modal */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '6px 10px',
-                  backgroundColor: (auction.biddersCount || auction.bids || 0) > 0 ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
-                  borderRadius: '20px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  color: (auction.biddersCount || auction.bids || 0) > 0 ? '#374151' : '#9ca3af',
-                  border: '1px solid rgba(148, 163, 184, 0.2)',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  backdropFilter: 'blur(8px)'
-                }}>
-                  <UserOutlined style={{ fontSize: '12px' }} />
-                  {auction.biddersCount || auction.bids || 0}
-                </div>
+                {/* Bidders Count Indicator for Modal - Hide for catalog items */}
+                {!isCatalog && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 10px',
+                    backgroundColor: (auction.biddersCount || auction.bids || 0) > 0 ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: (auction.biddersCount || auction.bids || 0) > 0 ? '#374151' : '#9ca3af',
+                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(8px)'
+                  }}>
+                    <UserOutlined style={{ fontSize: '12px' }} />
+                    {auction.biddersCount || auction.bids || 0}
+                  </div>
+                )}
               </div>
 
               <Button
@@ -2078,10 +2104,12 @@ AuctionCard2025.propTypes = {
   }).isRequired,
   onPlaceBid: PropTypes.func,
   onViewDetails: PropTypes.func,
+  onImageClick: PropTypes.func,
   showExtraData: PropTypes.bool,
   liveUpdateInterval: PropTypes.number,
   visualTheme: PropTypes.object,
-  sectionId: PropTypes.string
+  sectionId: PropTypes.string,
+  isCatalog: PropTypes.bool
 };
 
 export default AuctionCard2025;

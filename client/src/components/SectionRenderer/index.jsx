@@ -1,17 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Row, Col, Carousel, Typography, Space, Empty } from 'antd';
+import { useTranslation } from 'react-i18next';
 import CardRenderer from '../CardRenderer';
 import AuctionCard2025 from '../AuctionCard2025';
 import ActiveLogisticsRoutes from '../ActiveLogisticsRoutes';
 
-// TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
 const { Title, Text } = Typography;
 
 const SectionRenderer = ({ section, data }) => {
-  const { layout, card, title, subtitle, id, type, component, visual_theme } = section;
+  const { t } = useTranslation();
+  const { layout, card, titleKey, subtitleKey, title, subtitle, id, type, component, visual_theme } = section;
 
   // TODO-FX: Replace with real API call.
   // API Endpoint: GET /api/sections/{id}
@@ -180,16 +179,16 @@ const SectionRenderer = ({ section, data }) => {
     >
       <div className="full-width-section">
         {/* Section Header */}
-        {(title || subtitle) && (
+        {(title || subtitle || titleKey || subtitleKey) && (
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            {title && (
+            {(title || titleKey) && (
               <Title level={3} style={{ marginBottom: '8px', fontSize: '20px' }}>
-                {title}
+                {titleKey ? t(titleKey) : title}
               </Title>
             )}
-            {subtitle && (
+            {(subtitle || subtitleKey) && (
               <Text style={{ fontSize: '14px', color: '#666' }}>
-                {subtitle}
+                {subtitleKey ? t(subtitleKey) : subtitle}
               </Text>
             )}
           </div>
@@ -199,7 +198,7 @@ const SectionRenderer = ({ section, data }) => {
         {data && data.length > 0 ? (
           renderLayout()
         ) : (
-          <Empty description={t('no_items_found')} />
+          <Empty description={t('common.noItemsFound')} />
         )}
       </div>
     </div>
@@ -211,6 +210,8 @@ SectionRenderer.propTypes = {
     id: PropTypes.string.isRequired,
     title: PropTypes.string,
     subtitle: PropTypes.string,
+    titleKey: PropTypes.string,
+    subtitleKey: PropTypes.string,
     component: PropTypes.string,
     layout: PropTypes.shape({
       type: PropTypes.oneOf(['grid', 'carousel', 'masonry']),

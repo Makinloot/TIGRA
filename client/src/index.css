@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;700&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Noto Sans Georgian", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -102,4 +104,149 @@ button:focus-visible {
   .logo-responsive {
     max-height: 40px !important;
   }
+}
+
+/* Georgian font application for Ant Design components */
+.ant-layout,
+.ant-menu,
+.ant-typography,
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-card,
+.ant-modal,
+.ant-form,
+.ant-tabs,
+.ant-breadcrumb,
+.ant-dropdown,
+.ant-pagination,
+.ant-list,
+.ant-alert,
+.ant-notification,
+.ant-message,
+.ant-popover,
+.ant-tooltip,
+.ant-tag {
+  font-family: 'Noto Sans Georgian', sans-serif !important;
+}
+
+/* Ensure all text elements use Georgian font */
+* {
+  font-family: 'Noto Sans Georgian', sans-serif !important;
+}
+
+/* Auction Quick View Modal Animations */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Enhanced modal styling */
+.ant-modal-content {
+  border-radius: 16px;
+}
+
+.ant-descriptions-item-label {
+  background-color: #fafafa !important;
+}
+
+.ant-statistic-title {
+  margin-bottom: 4px;
+}
+
+.ant-image-img {
+  transition: transform 0.3s ease;
+}
+
+.ant-image-img:hover {
+  transform: scale(1.02);
 }

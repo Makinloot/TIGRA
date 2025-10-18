@@ -1,0 +1,422 @@
+{
+  "navigation": {
+    "home": "Home",
+    "statistics": "Statistics",
+    "dashboard": "Dashboard",
+    "auctions": "Auctions",
+    "logistics": "Logistics",
+    "crm": "CRM",
+    "support": "Support"
+  },
+  "hero": {
+    "headline": "Smart Auto Auctions. Global Logistics.",
+    "subtext": "Search, bid, and ship vehicles worldwide — powered by AI logistics.",
+    "joinAuction": "Join Live Auction",
+    "howItWorks": "How It Works"
+  },
+  "howItWorks": {
+    "browseVehicles": "Browse vehicles across auctions",
+    "placeBids": "Place secure bids with instant verification",
+    "arrangeShipping": "Arrange shipping directly in platform"
+  },
+  "footer": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "contact": "Contact Us",
+    "about": "About Us",
+    "platform": "Platform",
+    "resources": "Resources",
+    "help_center": "Help Center",
+    "docs": "Docs",
+    "blog": "Blog",
+    "ai_assistant": "AI Assistant",
+    "get_a_quote": "Get a Quote",
+    "sitemap": "Sitemap",
+    "accessibility": "Accessibility",
+    "cookies": "Cookies"
+  },
+  "auth": {
+    "welcome_back": "Welcome Back",
+    "sign_in": "Sign In",
+    "create_account": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "full_name": "Full Name",
+    "confirm_password": "Confirm Password",
+    "i_am_a": "I am a",
+    "user": "User",
+    "dealer": "Dealer",
+    "forgot_password": "Forgot Password?",
+    "select_account_type": "Select Account Type",
+    "user_account_desc": "User — buying & bidding access",
+    "dealer_account_desc": "Dealer — can list and sell vehicles",
+    "agreement_text": "By creating an account, you agree to our",
+    "and": "and",
+    "or_continue_with": "or continue with",
+    "google": "Google",
+    "facebook": "Facebook",
+    "authenticating": "Authenticating..."
+  },
+  "placeholders": {
+    "email": "you@example.com",
+    "password": "••••••••",
+    "password_register": "Create password",
+    "confirm_password": "Repeat password",
+    "full_name": "John Doe"
+  },
+  "validation": {
+    "email_required": "Email is required",
+    "email_invalid": "Please enter a valid email",
+    "password_required": "Password is required",
+    "password_min_length": "Password must be at least 8 characters",
+    "password_policy": "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number",
+    "passwords_do_not_match": "Passwords do not match",
+    "full_name_required": "Full name is required",
+    "full_name_min_length": "Full name must be at least 2 characters",
+    "confirm_password_required": "Please confirm your password",
+    "role_required": "Please select your account type"
+  },
+  "profile": {
+    "auction_trading": "Auction & Trading",
+    "auction_tools": "Auction Tools",
+    "my_bids": "My Bids",
+    "watchlist": "Watchlist",
+    "won_vehicles": "Won Vehicles",
+    "saved_searches": "Saved Searches",
+    "logistics_shipping": "Logistics & Shipping",
+    "logistics_tools": "Logistics",
+    "track_shipments": "Track Shipments",
+    "shipping_calculator": "Shipping Calculator",
+    "documents_center": "Documents Center",
+    "account_settings": "Account & Settings",
+    "account_tools": "Account",
+    "profile_settings": "Profile Settings",
+    "payment_methods": "Payment Methods",
+    "notifications": "Notifications",
+    "logout": "Logout",
+    "dealer_role": "Dealer",
+    "user_role": "User"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "close": "Close",
+    "confirm": "Confirm",
+    "previous": "Previous",
+    "next": "Next",
+    "language": "Language",
+    "ok": "OK",
+    "confirmBid": "Confirm Bid",
+    "disable": "Disable",
+    "noItemsFound": "No items found"
+  },
+  "hero": {
+    "slide1": {
+      "title": "Thousands of vehicles are waiting for you",
+      "subtitle": "Join the Live Auction!",
+      "carModel": "2022 Tesla Model 3",
+      "participants": "participants",
+      "joinLiveAuction": "Join Live Auction",
+      "bidQuestion": "How much would you like to bid?"
+    },
+    "slide2": {
+      "title": "Participate in real-time auctions",
+      "subtitle": "Bid, watch and win!",
+      "carModel": "2019 BMW X5",
+      "participants": "participants",
+      "joinLiveAuction": "Join Live Auction",
+      "bidQuestion": "How much would you like to bid?"
+    },
+    "slide3": {
+      "title": "Global vehicle marketplace",
+      "subtitle": "Find your dream car worldwide",
+      "carModel": "2021 Mercedes-Benz GLC",
+      "participants": "participants",
+      "joinLiveAuction": "Join Live Auction",
+      "bidQuestion": "How much would you like to bid?"
+    },
+    "videoControls": {
+      "muteUnmute": "Mute/Unmute",
+      "stopSlider": {
+        "stop": "Stop Slider",
+        "resume": "Resume Slider",
+        "question": "Do you want to stop the slider?"
+      }
+    }
+  },
+  "search": {
+    "title": "Find Your Perfect Vehicle",
+    "subtitle": "Search by VIN, filter by preferences, and sort by your priorities.",
+    "placeholder": "Enter VIN or keywords...",
+    "button": "Search",
+    "recentSearches": "Recent Searches:",
+    "quickFilters": "Quick Filters:",
+    "filters": {
+      "under10k": "Under $10k",
+      "electric": "Electric",
+      "lowMileage": "Low Mileage",
+      "suvOnly": "SUVs Only",
+      "certified": "Certified Pre-Owned",
+      "year2020Plus": "2020+",
+      "trucks": "Trucks",
+      "luxury": "Luxury"
+    },
+    "sortBy": "Sort by:",
+    "saveSearch": "Save Search",
+    "advancedFilters": "Advanced Filters",
+    "make": "Make",
+    "model": "Model",
+    "year": "Year",
+    "priceRange": "Price Range: $",
+    "bodyType": "Body Type",
+    "condition": "Condition",
+    "selectMakes": "Select makes",
+    "selectModels": "Select models",
+    "selectYears": "Select years",
+    "selectBodyTypes": "Select body types",
+    "selectCondition": "Select condition"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Simple, secure, and efficient vehicle auction and logistics process",
+    "steps": {
+      "browse": {
+        "title": "Browse vehicles across auctions",
+        "description": "Search through thousands of vehicles from verified auctions worldwide with advanced filters and real-time updates.",
+        "alt": "Person browsing vehicle auction listings on a computer"
+      },
+      "bid": {
+        "title": "Place secure bids with instant verification",
+        "description": "Bid confidently with our secure platform featuring instant bid verification, fraud protection, and transparent pricing.",
+        "alt": "Secure bidding interface with bid confirmation"
+      },
+      "shipping": {
+        "title": "Arrange shipping directly in platform",
+        "description": "Seamlessly arrange transportation with our integrated logistics network, tracking, and insurance coverage.",
+        "alt": "Logistics dashboard showing vehicle shipping routes"
+      }
+    }
+  },
+  "auctions": {
+    "currentBid": "Current Bid",
+    "placeBid": "Place Bid",
+    "miles": "miles",
+    "endingSoon": "ENDING SOON",
+    "live": "LIVE",
+    "hotDeal": "HOT DEAL",
+    "verified": "Verified",
+    "shipReady": "Ship Ready",
+    "participants": "participants",
+    "timeLeft": "Time Left",
+    "viewDetails": "View Details",
+    "newBidPlaced": "NEW BID PLACED",
+    "by": "by",
+    "bid": "bid",
+    "bids": "bids",
+    "lot": "Lot",
+    "year": "Year",
+    "condition": "Condition",
+    "location": "Location"
+  },
+  "footer": {
+    "brand": {
+      "title": "AutoMarketLogistic",
+      "tagline": "Smart Global Vehicle Trade & Logistics Platform",
+      "description": "Connecting global buyers, sellers, and transporters in one intelligent ecosystem.",
+      "followTwitter": "Follow us on Twitter",
+      "connectLinkedIn": "Connect on LinkedIn",
+      "watchVideos": "Watch our videos"
+    },
+    "platform": "Platform",
+    "auctions": "Auctions",
+    "logistics": "Logistics",
+    "crm": "CRM",
+    "aiAssistant": "AI Assistant",
+    "aboutUs": "About Us",
+    "resources": "Resources",
+    "helpCenter": "Help Center",
+    "docs": "Docs",
+    "blog": "Blog",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "contact": "Contact",
+    "address": "100 SE 2nd St, Miami, FL 33131, USA",
+    "phone": "+1 (305) 555-1023",
+    "email": "support@automarketlogistic.com",
+    "businessHours": "Mon–Fri 9:00–18:00 GMT+4",
+    "getQuote": "Get a Quote",
+    "copyright": "© 2025 AutoMarketLogistic. All rights reserved.",
+    "sitemap": "Sitemap",
+    "accessibility": "Accessibility",
+    "cookies": "Cookies"
+  },
+  "metrics": {
+    "activeAuctions": "Active Auctions",
+    "vehiclesListed": "Vehicles Listed",
+    "deliveredVehicles": "Delivered Vehicles",
+    "partnerCarriers": "Partner Carriers"
+  },
+  "auctionsList": {
+    "title": "Featured Auctions",
+    "subtitle": "Live auctions ending soon - place your bids now",
+    "loadMore": "Load More"
+  },
+  "sort": {
+    "relevance": "Relevance",
+    "priceLow": "Price (Low → High)",
+    "priceHigh": "Price (High → Low)",
+    "mileage": "Mileage",
+    "yearNew": "Year (Newest)"
+  },
+  "loadingStates": {
+    "logisticsRoutes": "Loading logistics routes...",
+    "timeLeft": "Loading...",
+    "howItWorks": "How It Works"
+  },
+  "aiAssistant": {
+    "placeholder": "Type your question..."
+  },
+  "modals": {
+    "makeBid": "Make a Bid",
+    "disableSlider": "Disable Slider",
+    "trackPrice": "Track Price Notification",
+    "shareDetails": "Share car details",
+    "addToFavorites": "Add to Favorites",
+    "trackPriceChanges": "Track price changes",
+    "addToCompare": "Add to compare"
+  },
+  "tooltips": {
+    "profileNotifications": "Profile Notifications",
+    "openProfileMenu": "Open Profile Menu"
+  },
+  "notifications": {
+    "phone": "Phone",
+    "email": "Email",
+    "socialMedia": "Social Media",
+    "websiteOnly": "Website Only"
+  },
+  "auctionStatus": {
+    "ended": "ENDED",
+    "veryGood": "A",
+    "good": "B",
+    "fair": "C",
+    "poor": "D",
+    "inTransit": "In Transit",
+    "loading": "Loading"
+  },
+  "news": {
+    "title": "Latest News & Updates",
+    "subtitle": "Stay informed with the latest automotive auction news and industry insights",
+    "readMore": "Read More",
+    "viewAll": "View All News & Updates",
+    "untitledArticle": "Untitled Article",
+    "unknownAuthor": "Unknown Author"
+  },
+  "logistics": {
+    "title": "Global Active Logistics Routes",
+    "subtitle": "Real Time Tracking Of Containers Across Global Network",
+    "activeContainers": "Active Containers",
+    "inTransit": "In Transit",
+    "loading": "Loading",
+    "eta": "ETA",
+    "realTimeUpdates": "Real Time Updates",
+    "dataUpdates": "Data Updates Every 5 Minutes",
+    "departurePoint": "Departure Point",
+    "destination": "Destination",
+    "complete": "Complete",
+    "containerId": "Container ID",
+    "route": "Route",
+    "description": "Description",
+    "progress": "Progress",
+    "currentLocation": "Current Location",
+    "container_locations": "Container Locations",
+    "no_container_locations": "No container locations available",
+    "live_container_tracking": "Live Container Tracking",
+    "loading_live_tracking": "Loading live tracking...",
+    "last_updated": "Last updated:",
+    "route_progress": "Route Progress",
+    "value": "Value",
+    "from": "From",
+    "to": "To",
+    "vessel": "Vessel",
+    "last_update": "Last update",
+    "complete": "complete",
+    "eta": "ETA"
+  },
+  "partners": {
+    "title": "Trusted Logistics Partners",
+    "subtitle": "Our Global Network Of Logistics And Insurance Leaders"
+  },
+  "statistics": {
+    "title": "Statistics - AutoMarketLogistic",
+    "description": "Comprehensive analytics and insights for vehicle auctions and logistics operations",
+    "generalStats": "General Statistics",
+    "totalSales": "Total Sales",
+    "activeAuctions": "Active Auctions",
+    "activeRoutes": "Active Routes",
+    "avgDeliveryTime": "Avg Delivery Time",
+    "analytics": "Analytics",
+    "sales": "Sales",
+    "categories": "Categories",
+    "routes": "Routes",
+    "logistics": "Logistics",
+    "mapRoutes": "Route Map",
+    "month": "Month",
+    "target": "Target",
+    "percentage": "Percentage",
+    "volume": "Volume",
+    "growth": "Growth",
+    "containers": "Containers",
+    "realTimeUpdates": "Real-time Updates",
+    "dataRefreshes": "Data refreshes every 5 minutes"
+  },
+  "dashboard": {
+    "title": "Dashboard - AutoMarketLogistic",
+    "description": "Personal dashboard for managing auctions, bids, and logistics",
+    "myDashboard": "My Dashboard",
+    "dealerDashboard": "Dealer Dashboard",
+    "editProfile": "Edit Profile",
+    "userView": "User View",
+    "dealerView": "Dealer View",
+    "myAuctions": "My Auctions",
+    "lotId": "Lot ID",
+    "title": "Title",
+    "currentBid": "Current Bid",
+    "myBid": "My Bid",
+    "timeLeft": "Time Left",
+    "status": "Status",
+    "delivery": "Delivery",
+    "myListings": "My Listings",
+    "clients": "Clients",
+    "reports": "Reports",
+    "totalSales": "Total Sales",
+    "activeListings": "Active Listings",
+    "totalClients": "Total Clients",
+    "name": "Name",
+    "email": "Email",
+    "vehicles": "Vehicles",
+    "lastActivity": "Last Activity",
+    "bids": "Bids",
+    "endTime": "End Time",
+    "buyer": "Buyer",
+    "shippingRoutes": "Active Shipping Routes"
+  },
+  "loadingStates": {
+    "chart": "Loading chart data...",
+    "logisticsRoutes": "Loading logistics routes...",
+    "timeLeft": "Loading...",
+    "howItWorks": "How It Works"
+  }
+}
+

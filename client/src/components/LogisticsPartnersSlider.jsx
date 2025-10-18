@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-
-// TODO-FX: Connect to i18n library.
-const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+import { useTranslation } from 'react-i18next';
 
 const LogisticsPartnersSlider = () => {
+  const { t } = useTranslation();
   const sliderRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -78,14 +77,14 @@ const LogisticsPartnersSlider = () => {
             color: '#1f2937',
             marginBottom: '8px'
           }}>
-            {t('trusted_logistics_partners')}
+            {t('partners.title')}
           </h2>
           <p style={{
             fontSize: '14px',
             color: '#6b7280',
             margin: 0
           }}>
-            {t('our_global_network_of_logistics_and_insurance_leaders')}
+            {t('partners.subtitle')}
           </p>
         </div>
 

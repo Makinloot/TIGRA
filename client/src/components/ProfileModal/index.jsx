@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 import { Modal, Avatar, Button, Menu, Card, Space, Divider, Select, Typography } from 'antd';
 import './index.css';
 import {
@@ -12,9 +13,9 @@ import {
   CreditCardOutlined,
   BellOutlined,
   LogoutOutlined,
-  UserOutlined
+  UserOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
-import { t } from '../../i18n';
 import { mockUserProfile } from '../../mocks/_mockData';
 
 // TODO-FX: Replace with real API call.
@@ -29,6 +30,7 @@ const ProfileModal = ({
   onLogout
 }) => {
   const [userRole, setUserRole] = useState(mockUserProfile.role);
+  const navigate = useNavigate();
 
   const handleRoleSwitch = (value) => {
     setUserRole(value);
@@ -49,6 +51,11 @@ const ProfileModal = ({
     onClose();
   };
 
+  const handleTrackVehicle = () => {
+    navigate('/track');
+    onClose();
+  };
+
 
   return (
     <Modal
@@ -57,7 +64,7 @@ const ProfileModal = ({
       onCancel={onClose}
       footer={null}
       width={400}
-      destroyOnClose
+      destroyOnHidden
       maskClosable
       centered
       styles={{
@@ -86,7 +93,7 @@ const ProfileModal = ({
                 Demo User
               </Typography.Title>
               <Typography.Text type="secondary">
-                Welcome back
+                კეთილი იყო ბრუნება
               </Typography.Text>
             </div>
           </Space>
@@ -97,8 +104,8 @@ const ProfileModal = ({
             onChange={handleRoleSwitch}
             style={{ width: '100%' }}
             options={[
-              { value: 'user', label: t('user_role') },
-              { value: 'dealer', label: t('dealer_role') },
+              { value: 'user', label: 'მომხმარებელი' },
+              { value: 'dealer', label: 'დილერი' },
             ]}
           />
         </div>
@@ -110,7 +117,7 @@ const ProfileModal = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* Auction & Trading Section */}
           <Card size="small" className="profile-section-card" bordered>
-            <div className="font-medium text-gray-900 mb-2 text-sm">{t('auction_trading')}</div>
+            <div className="font-medium text-gray-900 mb-2 text-sm">აუქციონი და ვაჭრობა</div>
             <Divider style={{ margin: '8px 0' }} />
             <Space direction="vertical" size="middle" className="w-full">
               <Button
@@ -119,7 +126,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'my_bids' })}
               >
-                {t('my_bids')}
+                ჩემი ბიდი
               </Button>
               <Button
                 type="text"
@@ -127,7 +134,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'watchlist' })}
               >
-                {t('watchlist')}
+                დათვალიერების სია
               </Button>
               <Button
                 type="text"
@@ -135,7 +142,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'won_vehicles' })}
               >
-                {t('won_vehicles')}
+                მოგებული ავტომობილები
               </Button>
             </Space>
           </Card>
@@ -145,16 +152,24 @@ const ProfileModal = ({
 
           {/* Logistics & Shipping Section */}
           <Card size="small" className="profile-section-card" bordered>
-            <div className="font-medium text-gray-900 mb-2 text-sm">{t('logistics_shipping')}</div>
+            <div className="font-medium text-gray-900 mb-2 text-sm">ლოგისტიკა და გადაზიდვა</div>
             <Divider style={{ margin: '8px 0' }} />
             <Space direction="vertical" size="middle" className="w-full">
+              <Button
+                type="text"
+                icon={<GlobalOutlined />}
+                className="profile-menu-item w-full justify-start h-auto py-2"
+                onClick={handleTrackVehicle}
+              >
+                ავტომობილის თვალყური
+              </Button>
               <Button
                 type="text"
                 icon={<ToolOutlined />}
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'track_shipments' })}
               >
-                {t('track_shipments')}
+                ამტვერეთ გადაზიდვა
               </Button>
               <Button
                 type="text"
@@ -162,7 +177,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'shipping_calculator' })}
               >
-                {t('shipping_calculator')}
+                გადაზიდვის კალკულატორი
               </Button>
             </Space>
           </Card>
@@ -172,7 +187,7 @@ const ProfileModal = ({
 
           {/* Account & Settings Section */}
           <Card size="small" className="profile-section-card" bordered>
-            <div className="font-medium text-gray-900 mb-2 text-sm">{t('account_settings')}</div>
+            <div className="font-medium text-gray-900 mb-2 text-sm">ანგარიში და პარამეტრები</div>
             <Divider style={{ margin: '8px 0' }} />
             <Space direction="vertical" size="middle" className="w-full">
               <Button
@@ -181,7 +196,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'profile_settings' })}
               >
-                {t('profile_settings')}
+                პროფილის პარამეტრები
               </Button>
               <Button
                 type="text"
@@ -189,7 +204,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'payment_methods' })}
               >
-                {t('payment_methods')}
+                გადახდის მეთოდები
               </Button>
               <Button
                 type="text"
@@ -197,7 +212,7 @@ const ProfileModal = ({
                 className="profile-menu-item w-full justify-start h-auto py-2"
                 onClick={() => handleMenuClick({ key: 'notifications' })}
               >
-                {t('notifications')}
+                შეტყობინებები
               </Button>
             </Space>
           </Card>
@@ -214,7 +229,7 @@ const ProfileModal = ({
               className="profile-menu-item w-full justify-start h-auto py-2"
               onClick={() => handleMenuClick({ key: 'logout' })}
             >
-              {t('logout')}
+              გამოსვლა
             </Button>
           </Card>
         </div>

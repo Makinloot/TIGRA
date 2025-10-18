@@ -2,23 +2,25 @@ import React from 'react';
 import { Row, Col, Statistic, Card } from 'antd';
 import { CarOutlined, CheckCircleOutlined, TruckOutlined, DollarOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const KeyMetrics = ({ keyMetrics }) => {
+  const { t } = useTranslation();
+
   const getMetricIcon = (title) => {
     const iconStyle = { fontSize: '32px', color: '#1890ff' };
 
-    switch (title) {
-      case 'Active Auctions':
-        return <DollarOutlined style={iconStyle} />;
-      case 'Vehicles Listed':
-        return <CarOutlined style={iconStyle} />;
-      case 'Delivered Vehicles':
-        return <CheckCircleOutlined style={{ ...iconStyle, color: '#52c41a' }} />;
-      case 'Partner Carriers':
-        return <TruckOutlined style={{ ...iconStyle, color: '#faad14' }} />;
-      default:
-        return <CarOutlined style={iconStyle} />;
+    if (title === t('metrics.activeAuctions')) {
+      return <DollarOutlined style={iconStyle} />;
+    } else if (title === t('metrics.vehiclesListed')) {
+      return <CarOutlined style={iconStyle} />;
+    } else if (title === t('metrics.deliveredVehicles')) {
+      return <CheckCircleOutlined style={{ ...iconStyle, color: '#52c41a' }} />;
+    } else if (title === t('metrics.partnerCarriers')) {
+      return <TruckOutlined style={{ ...iconStyle, color: '#faad14' }} />;
     }
+
+    return <CarOutlined style={iconStyle} />;
   };
 
   return (

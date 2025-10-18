@@ -22,14 +22,13 @@ import {
   HeartOutlined,
   HeartFilled
 } from '@ant-design/icons';
-
-// TODO-FX: Connect to i18n library.
-// const t = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = false }) => {
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState('');
   const [filters, setFilters] = useState({
     brand: [],
@@ -69,14 +68,14 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
   const conditions = ['New', 'Used', 'Certified'];
   const years = Array.from({ length: new Date().getFullYear() - 1990 + 1 }, (_, i) => new Date().getFullYear() - i);
   const quickFilters = [
-    { label: 'Under $10k', key: 'under_10k' },
-    { label: 'Electric', key: 'electric' },
-    { label: 'Low Mileage', key: 'low_mileage' },
-    { label: 'SUVs Only', key: 'suv_only' },
-    { label: 'Certified Pre-Owned', key: 'certified' },
-    { label: '2020+', key: 'newer_2020' },
-    { label: 'Trucks', key: 'trucks' },
-    { label: 'Luxury', key: 'luxury' }
+    { label: t('search.filters.under10k'), key: 'under_10k' },
+    { label: t('search.filters.electric'), key: 'electric' },
+    { label: t('search.filters.lowMileage'), key: 'low_mileage' },
+    { label: t('search.filters.suvOnly'), key: 'suv_only' },
+    { label: t('search.filters.certified'), key: 'certified' },
+    { label: t('search.filters.year2020Plus'), key: 'newer_2020' },
+    { label: t('search.filters.trucks'), key: 'trucks' },
+    { label: t('search.filters.luxury'), key: 'luxury' }
   ];
 
   const handleFilterChange = (filterKey, value) => {
@@ -169,17 +168,16 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
 
   if (loading) {
     return (
-      <div style={{ backgroundColor: '#f9fafb', padding: '48px 24px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+      <div style={{ backgroundColor: '#f9fafb', padding: '24px 16px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <Card
             style={{
-              borderRadius: '16px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              borderRadius: '12px',
+              boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)',
               backgroundColor: '#f9fafb'
             }}
-            styles={{ body: { padding: '48px 24px' } }}
+            styles={{ body: { padding: '24px 16px' } }}
           >
-            <Skeleton active />
             <Skeleton active />
             <Skeleton active />
           </Card>
@@ -189,32 +187,32 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
   }
 
   return (
-    <div id="search-filters-section" style={{ backgroundColor: '#f9fafb', padding: '48px 24px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+    <div id="search-filters-section" style={{ backgroundColor: '#f9fafb', padding: '24px 16px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <Card
           style={{
-            borderRadius: '16px',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+            borderRadius: '12px',
+            boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)',
             backgroundColor: '#f9fafb'
           }}
-          styles={{ body: { padding: '48px 24px' } }}
+          styles={{ body: { padding: '24px 16px' } }}
         >
-          {/* Title and Subtitle */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <Title level={2} style={{ margin: 0, marginBottom: '8px', color: '#1f2937', fontWeight: 'bold' }}>
-              Find Your Perfect Vehicle
+          {/* Title and Subtitle - Compact */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <Title level={3} style={{ margin: 0, marginBottom: '4px', color: '#1f2937', fontWeight: 'bold' }}>
+              {t('search.title')}
             </Title>
-            <Text style={{ fontSize: '18px', color: '#6b7280', lineHeight: '28px' }}>
-              Search by VIN, filter by preferences, and sort by your priorities.
+            <Text style={{ fontSize: '14px', color: '#6b7280', lineHeight: '20px' }}>
+              {t('search.subtitle')}
             </Text>
           </div>
 
           {/* Main Search Bar */}
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '16px' }}>
             <Row gutter={16} align="middle">
               <Col xs={24} sm={24} md={16} lg={18} xl={20}>
                 <Input
-                  placeholder="Enter VIN or keywords..."
+                  placeholder={t('search.placeholder')}
                   prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
@@ -243,26 +241,27 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                   }}
                   loading={loading}
                 >
-                  Search
+                  {t('search.button')}
                 </Button>
               </Col>
             </Row>
 
-            {/* Recent Searches */}
+            {/* Recent Searches - Compact */}
             {savedSearches.length > 0 && (
-              <div style={{ marginTop: '12px' }}>
-                <Text style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
-                  Recent Searches:
+              <div style={{ marginTop: '8px' }}>
+                <Text style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px', display: 'block' }}>
+                  {t('search.recentSearches')}
                 </Text>
-                <Space wrap>
-                  {savedSearches.map((search, index) => (
+                <Space wrap size={4}>
+                  {savedSearches.slice(0, 4).map((search, index) => (
                     <Tag
                       key={index}
                       style={{
-                        borderRadius: '16px',
-                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        padding: '2px 8px',
                         cursor: 'pointer',
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid #e5e7eb',
+                        fontSize: '11px'
                       }}
                       onClick={() => setSearchValue(search)}
                     >
@@ -273,20 +272,23 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
               </div>
             )}
 
-            {/* Quick Filters */}
-            <div style={{ marginTop: '16px' }}>
-              <Text style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', display: 'block' }}>
-                Quick Filters:
+            {/* Quick Filters - Compact */}
+            <div style={{ marginTop: '12px' }}>
+              <Text style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px', display: 'block' }}>
+                {t('search.quickFilters')}
               </Text>
-              <Space wrap>
-                {quickFilters.map((filter) => (
+              <Space wrap size={6}>
+                {quickFilters.slice(0, 6).map((filter) => (
                   <Button
                     key={filter.key}
                     type="text"
+                    size="small"
                     style={{
-                      borderRadius: '16px',
+                      borderRadius: '12px',
                       border: '1px solid #e5e7eb',
-                      color: '#6b7280'
+                      color: '#6b7280',
+                      fontSize: '11px',
+                      height: '24px'
                     }}
                     onClick={() => handleQuickFilter(filter.key)}
                   >
@@ -297,12 +299,12 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
             </div>
           </div>
 
-          {/* Sort and Save Search */}
-          <Row gutter={16} align="middle" style={{ marginBottom: '24px' }}>
+          {/* Sort and Save Search - Compact */}
+          <Row gutter={12} align="middle" style={{ marginBottom: '16px' }}>
             <Col xs={24} sm={12} md={8} lg={6}>
               <div>
-                <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                  Sort by:
+                <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                  {t('search.sortBy')}
                 </Text>
                 <Select
                   value={sortBy}
@@ -310,11 +312,11 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                   size="large"
                   style={{ width: '100%', borderRadius: '8px' }}
                 >
-                  <Option value="relevance">Relevance</Option>
-                  <Option value="price_low">Price (Low → High)</Option>
-                  <Option value="price_high">Price (High → Low)</Option>
-                  <Option value="mileage">Mileage</Option>
-                  <Option value="year_new">Year (Newest)</Option>
+                  <Option value="relevance">{t('sort.relevance')}</Option>
+                  <Option value="price_low">{t('sort.priceLow')}</Option>
+                  <Option value="price_high">{t('sort.priceHigh')}</Option>
+                  <Option value="mileage">{t('sort.mileage')}</Option>
+                  <Option value="year_new">{t('sort.yearNew')}</Option>
                 </Select>
               </div>
             </Col>
@@ -339,20 +341,20 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                     borderRadius: '8px'
                   }}
                 >
-                  {isSearchSaved ? 'Saved' : 'Save Search'}
+                  {isSearchSaved ? t('common.saved') : t('search.saveSearch')}
                 </Button>
               </Space>
             </Col>
           </Row>
 
-          {/* Filter Panel */}
+          {/* Filter Panel - Compact */}
           <Card
             style={{
-              borderRadius: '12px',
+              borderRadius: '8px',
               boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
               backgroundColor: '#ffffff'
             }}
-            styles={{ body: { padding: '24px' } }}
+            styles={{ body: { padding: '16px' } }}
           >
             <Collapse
               defaultActiveKey={['filters']}
@@ -364,20 +366,20 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                   label: (
                     <Text strong style={{ fontSize: '16px', color: '#374151' }}>
                       <FilterOutlined style={{ marginRight: '8px' }} />
-                      Advanced Filters
+                      {t('search.advancedFilters')}
                     </Text>
                   ),
                   children: (
-                    <Row gutter={[24, 24]}>
+                    <Row gutter={[16, 16]}>
                       {/* Make */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Make
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.make')}
                           </Text>
                           <Select
                             mode="multiple"
-                            placeholder="Select makes"
+                            placeholder={t('search.selectMakes')}
                             value={filters.brand}
                             onChange={(value) => handleFilterChange('brand', value)}
                             size="large"
@@ -395,12 +397,12 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                       {/* Model */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Model
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.model')}
                           </Text>
                           <Select
                             mode="multiple"
-                            placeholder="Select models"
+                            placeholder={t('search.selectModels')}
                             value={filters.model}
                             onChange={(value) => handleFilterChange('model', value)}
                             size="large"
@@ -424,12 +426,12 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                       {/* Year */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Year
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.year')}
                           </Text>
                           <Select
                             mode="multiple"
-                            placeholder="Select years"
+                            placeholder={t('search.selectYears')}
                             value={filters.year}
                             onChange={(value) => handleFilterChange('year', value)}
                             size="large"
@@ -447,8 +449,8 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                       {/* Price Range */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Price Range: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.priceRange')} {filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
                           </Text>
                           <Slider
                             range
@@ -467,12 +469,12 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                       {/* Body Type */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Body Type
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.bodyType')}
                           </Text>
                           <Select
                             mode="multiple"
-                            placeholder="Select body types"
+                            placeholder={t('search.selectBodyTypes')}
                             value={filters.bodyType}
                             onChange={(value) => handleFilterChange('bodyType', value)}
                             size="large"
@@ -490,12 +492,12 @@ const SearchAndFilters = ({ onSearch, onFiltersChange, onSortChange, loading = f
                       {/* Condition */}
                       <Col xs={24} sm={12} md={8} lg={6}>
                         <div>
-                          <Text strong style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', display: 'block' }}>
-                            Condition
+                          <Text strong style={{ fontSize: '12px', color: '#374151', marginBottom: '6px', display: 'block' }}>
+                            {t('search.condition')}
                           </Text>
                           <Select
                             mode="multiple"
-                            placeholder="Select condition"
+                            placeholder={t('search.selectCondition')}
                             value={filters.condition}
                             onChange={(value) => handleFilterChange('condition', value)}
                             size="large"
