@@ -182,6 +182,7 @@ const DispatchDashboard = () => {
   const [warehouseOptions, setWarehouseOptions] = useState([]);
   const [auctionOptionsLoading, setAuctionOptionsLoading] = useState(false);
   const [warehouseOptionsLoading, setWarehouseOptionsLoading] = useState(false);
+  const [editIntentCell, setEditIntentCell] = useState(null);
 
   const handleDeleteDispatch = useMemo(
     () =>
@@ -202,7 +203,10 @@ const DispatchDashboard = () => {
       const valueToCopy = text;
 
       try {
-        if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+        if (
+          typeof navigator !== "undefined" &&
+          navigator?.clipboard?.writeText
+        ) {
           await navigator.clipboard.writeText(valueToCopy);
         } else {
           const tempInput = document.createElement("textarea");
@@ -862,6 +866,7 @@ const DispatchDashboard = () => {
   const cancelEditing = () => {
     setEditingCell(null);
     setEditingValue("");
+    setEditIntentCell(null);
   };
 
   const handleSave = async (record, dataIndex, value) => {
@@ -927,16 +932,12 @@ const DispatchDashboard = () => {
 
       setDispatches((prev) =>
         prev.map((item) =>
-          String(item.id) === String(record.id)
-            ? updatedVehicle
-            : item
+          String(item.id) === String(record.id) ? updatedVehicle : item
         )
       );
       setFilteredDispatches((prev) =>
         prev.map((item) =>
-          String(item.id) === String(record.id)
-            ? updatedVehicle
-            : item
+          String(item.id) === String(record.id) ? updatedVehicle : item
         )
       );
 
@@ -951,7 +952,7 @@ const DispatchDashboard = () => {
   };
 
   const renderEditableCell = (dataIndex, options = {}) => {
-    return (value, record) => {
+    return (value, record, recordIndex) => {
       const isEditing =
         editingCell &&
         String(editingCell.id) === String(record.id) &&
@@ -1024,43 +1025,47 @@ const DispatchDashboard = () => {
         ? options.renderExtra(record)
         : null;
 
+      const cellIdentifierSource =
+        record.id ?? record._id ?? record.vin ?? record.dispatchNumber ?? recordIndex;
+      const cellKey = `${String(cellIdentifierSource)}::${dataIndex}`;
+
+      const handleActivation = () => {
+        if (options.readOnly) {
+          return;
+        }
+
+        if (editIntentCell?.cellKey === cellKey) {
+          startEditing(record, dataIndex, value);
+          setEditIntentCell(null);
+          return;
+        }
+
+        if (typeof options.copyOnClick === "function") {
+          const textToCopy = options.copyOnClick(value, record);
+          if (textToCopy !== undefined && textToCopy !== null) {
+            const normalizedText =
+              typeof textToCopy === "string"
+                ? textToCopy
+                : String(textToCopy ?? "");
+            if (normalizedText.trim() !== "") {
+              copyTextToClipboard(normalizedText);
+            }
+          }
+        }
+
+        setEditIntentCell({ cellKey });
+      };
+
       return (
         <div
           role="button"
           tabIndex={0}
+          data-editable-cell="true"
           style={{ cursor: options.readOnly ? "not-allowed" : "pointer" }}
-          onClick={() => {
-            if (!options.readOnly) {
-              if (typeof options.copyOnClick === "function") {
-                const textToCopy = options.copyOnClick(value, record);
-                if (textToCopy !== undefined && textToCopy !== null) {
-                  const normalizedText =
-                    typeof textToCopy === "string"
-                      ? textToCopy
-                      : String(textToCopy ?? "");
-                  if (normalizedText.trim() !== "") {
-                    copyTextToClipboard(normalizedText);
-                  }
-                }
-              }
-              startEditing(record, dataIndex, value);
-            }
-          }}
+          onClick={handleActivation}
           onKeyDown={(e) => {
             if (!options.readOnly && (e.key === "Enter" || e.key === " ")) {
-              if (typeof options.copyOnClick === "function") {
-                const textToCopy = options.copyOnClick(value, record);
-                if (textToCopy !== undefined && textToCopy !== null) {
-                  const normalizedText =
-                    typeof textToCopy === "string"
-                      ? textToCopy
-                      : String(textToCopy ?? "");
-                  if (normalizedText.trim() !== "") {
-                    copyTextToClipboard(normalizedText);
-                  }
-                }
-              }
-              startEditing(record, dataIndex, value);
+              handleActivation();
             }
           }}
         >
@@ -1070,6 +1075,19 @@ const DispatchDashboard = () => {
       );
     };
   };
+
+  useEffect(() => {
+    const resetIntentOnOutsideClick = (event) => {
+      if (!event.target.closest("[data-editable-cell='true']")) {
+        setEditIntentCell(null);
+      }
+    };
+
+    document.addEventListener("click", resetIntentOnOutsideClick);
+    return () => {
+      document.removeEventListener("click", resetIntentOnOutsideClick);
+    };
+  }, []);
 
   const renderVehicleInfoCell = (record) => {
     const primary =
