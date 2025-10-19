@@ -66,6 +66,36 @@ const t = (key) =>
 
 const MAX_VEHICLE_SLOTS = 5;
 
+const normalizeVehicleVinData = (vehicle) => {
+  if (!vehicle || typeof vehicle !== "object") {
+    return vehicle;
+  }
+
+  const normalized = { ...vehicle };
+
+  for (let slotNumber = 2; slotNumber <= MAX_VEHICLE_SLOTS; slotNumber += 1) {
+    const vinKey = `vin${slotNumber}`;
+    const makeKey = `make${slotNumber}`;
+    const modelKey = `model${slotNumber}`;
+    const yearKey = `year${slotNumber}`;
+
+    if (!normalized[vinKey]) {
+      delete normalized[vinKey];
+      delete normalized[makeKey];
+      delete normalized[modelKey];
+      delete normalized[yearKey];
+    }
+  }
+
+  if (Array.isArray(normalized.additionalVehicles)) {
+    normalized.additionalVehicles = normalized.additionalVehicles.filter(
+      (vehicleEntry) => vehicleEntry && vehicleEntry.vin
+    );
+  }
+
+  return normalized;
+};
+
 const extractAdditionalVehicles = (record) => {
   const additional = Array.isArray(record.additionalVehicles)
     ? record.additionalVehicles.filter((vehicle) => vehicle?.vin)
@@ -148,6 +178,10 @@ const DispatchDashboard = () => {
   const [vinModalSlots, setVinModalSlots] = useState([]);
   const [vinForm] = Form.useForm();
   const [togglingAppointmentId, setTogglingAppointmentId] = useState(null);
+  const [auctionOptions, setAuctionOptions] = useState([]);
+  const [warehouseOptions, setWarehouseOptions] = useState([]);
+  const [auctionOptionsLoading, setAuctionOptionsLoading] = useState(false);
+  const [warehouseOptionsLoading, setWarehouseOptionsLoading] = useState(false);
 
   const handleDeleteDispatch = useMemo(
     () =>
@@ -156,6 +190,38 @@ const DispatchDashboard = () => {
         setDispatches,
         setFilteredDispatches,
       }),
+    [t]
+  );
+
+  const copyTextToClipboard = useCallback(
+    async (text) => {
+      if (typeof text !== "string" || text.trim() === "") {
+        return;
+      }
+
+      const valueToCopy = text;
+
+      try {
+        if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(valueToCopy);
+        } else {
+          const tempInput = document.createElement("textarea");
+          tempInput.value = valueToCopy;
+          tempInput.style.position = "fixed";
+          tempInput.style.top = "-1000px";
+          document.body.appendChild(tempInput);
+          tempInput.focus();
+          tempInput.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempInput);
+        }
+
+        message.success(t("copied_to_clipboard"));
+      } catch (error) {
+        console.error("Failed to copy text:", error);
+        message.error(t("failed_to_copy_to_clipboard"));
+      }
+    },
     [t]
   );
 
@@ -190,12 +256,16 @@ const DispatchDashboard = () => {
 
         setDispatches((prev) =>
           prev.map((item) =>
-            String(item.id) === recordIdString ? { ...item, ...updatedVehicle } : item
+            String(item.id) === recordIdString
+              ? { ...item, ...updatedVehicle }
+              : item
           )
         );
         setFilteredDispatches((prev) =>
           prev.map((item) =>
-            String(item.id) === recordIdString ? { ...item, ...updatedVehicle } : item
+            String(item.id) === recordIdString
+              ? { ...item, ...updatedVehicle }
+              : item
           )
         );
 
@@ -223,7 +293,9 @@ const DispatchDashboard = () => {
         setError(null);
 
         const response = await axios.get("http://localhost:3000/vehicles");
-        const data = response.data;
+        const data = Array.isArray(response.data)
+          ? response.data.map((item) => normalizeVehicleVinData(item))
+          : [];
         // console.log("DATAAA", data);
         setDispatches(data);
         setFilteredDispatches(data);
@@ -236,6 +308,47 @@ const DispatchDashboard = () => {
     };
 
     fetchDispatches();
+  }, []);
+
+  useEffect(() => {
+    const fetchReferenceOptions = async () => {
+      setAuctionOptionsLoading(true);
+      setWarehouseOptionsLoading(true);
+
+      try {
+        const [auctionsResponse, warehousesResponse] = await Promise.all([
+          axios.get("http://localhost:3000/auctions"),
+          axios.get("http://localhost:3000/warehouses"),
+        ]);
+
+        const mappedAuctions = (auctionsResponse.data ?? [])
+          .map((auction) => {
+            const name = auction?.name?.trim();
+            if (!name) return null;
+            return { value: name, label: name };
+          })
+          .filter(Boolean);
+
+        const mappedWarehouses = (warehousesResponse.data ?? [])
+          .map((warehouse) => {
+            const name = warehouse?.name?.trim();
+            if (!name) return null;
+            return { value: name, label: name };
+          })
+          .filter(Boolean);
+
+        setAuctionOptions(mappedAuctions);
+        setWarehouseOptions(mappedWarehouses);
+      } catch (err) {
+        console.error("Failed to fetch reference options:", err);
+        message.error(t("failed_to_fetch_reference_data"));
+      } finally {
+        setAuctionOptionsLoading(false);
+        setWarehouseOptionsLoading(false);
+      }
+    };
+
+    fetchReferenceOptions();
   }, []);
 
   // Apply filters
@@ -339,8 +452,31 @@ const DispatchDashboard = () => {
     setFilteredDispatches(filtered);
   }, [dispatches, searchValue, statusFilter, dateRange]);
 
-  // Get row style based on dispatch status (Spec §5.2 - Police Tape Pattern)
+  // Get row style based on appointment flags, fall back to status coloring
   const getRowClassName = (record) => {
+    const appointment = record.appointment ?? {};
+    const hasAuction =
+      appointment.auction === undefined ? null : Boolean(appointment.auction);
+    const hasWarehouse =
+      appointment.warehouse === undefined
+        ? null
+        : Boolean(appointment.warehouse);
+
+    if (hasAuction !== null || hasWarehouse !== null) {
+      const auctionValue = hasAuction ?? false;
+      const warehouseValue = hasWarehouse ?? false;
+
+      if (auctionValue && warehouseValue) {
+        return "dispatch-row-appointment-both";
+      }
+
+      if (!auctionValue && !warehouseValue) {
+        return "dispatch-row-appointment-none";
+      }
+
+      return "dispatch-row-appointment-partial";
+    }
+
     switch (record.dispatchStatus) {
       case "new":
         return "dispatch-row-new";
@@ -381,7 +517,7 @@ const DispatchDashboard = () => {
 
       if (shouldInclude) {
         slots.push({
-          label: `${t("vin")} #${slotNumber}`,
+          slotNumber,
           flatKey,
           additionalIndex: slotNumber === 1 ? null : additionalIndex,
           value,
@@ -474,16 +610,6 @@ const DispatchDashboard = () => {
   //     </Tooltip>
   //   );
   // };
-
-  // Render appointment indicators
-  const renderAppointmentIndicators = (value, record) => {
-    return (
-      <Space>
-        {record?.isAppointmentR1 && <Tag color="blue">R1</Tag>}
-        {record?.isAppointmentR2 && <Tag color="purple">R2</Tag>}
-      </Space>
-    );
-  };
 
   // Clear all filters
   const clearFilters = () => {
@@ -608,22 +734,29 @@ const DispatchDashboard = () => {
   // CSV export configuration
   const csvHeaders = [
     { label: t("vin"), key: "vin" },
-    { label: t("make"), key: "vehicleInfo.make" },
-    { label: t("model"), key: "vehicleInfo.model" },
-    { label: t("year"), key: "vehicleInfo.year" },
+    { label: t("vehicleInfo"), key: "vehicleInfo" },
     { label: t("auction"), key: "auction" },
     { label: t("pickup_date"), key: "pickupDate" },
     { label: t("delivery_date"), key: "deliveryDate" },
+    { label: t("comment"), key: "comment" },
+    { label: t("warehouse"), key: "warehouse" },
+    { label: t("driver_number"), key: "driverNumber" },
+    { label: t("route"), key: "route" },
     { label: t("price"), key: "price" },
-    { label: t("payment_status"), key: "paymentStatus" },
   ];
 
   // TODO-FX: Connect to i18n library.
   const csvData = filteredDispatches.map((item) => ({
-    ...item,
-    "vehicleInfo.make": item.vehicleInfo?.make || "",
-    "vehicleInfo.model": item.vehicleInfo?.model || "",
-    "vehicleInfo.year": item.vehicleInfo?.year || "",
+    vin: item.vin ?? "",
+    vehicleInfo: [item.make, item.model, item.year].filter(Boolean).join(" "),
+    auction: item.auction ?? "",
+    pickupDate: item.pickupDate ?? "",
+    deliveryDate: item.deliveryDate ?? "",
+    comment: item.comment ?? "",
+    warehouse: item.warehouse ?? "",
+    driverNumber: item.driverNumber ?? "",
+    route: item.route ?? "",
+    price: item.price ?? "",
   }));
 
   // Menu props for dropdown button
@@ -675,6 +808,42 @@ const DispatchDashboard = () => {
     vinForm.setFieldsValue(initialFields);
 
     setIsVinModalOpen(true);
+  };
+
+  const handleAddVinSlot = () => {
+    if (vinModalSlots.length >= MAX_VEHICLE_SLOTS) return;
+
+    const existingSlotNumbers = vinModalSlots.map((slot) => slot.slotNumber);
+    let nextSlotNumber = null;
+
+    for (let candidate = 2; candidate <= MAX_VEHICLE_SLOTS; candidate += 1) {
+      if (!existingSlotNumbers.includes(candidate)) {
+        nextSlotNumber = candidate;
+        break;
+      }
+    }
+
+    if (!nextSlotNumber) {
+      return;
+    }
+
+    const flatKey = `vin${nextSlotNumber}`;
+
+    const newSlot = {
+      slotNumber: nextSlotNumber,
+      flatKey,
+      additionalIndex: nextSlotNumber - 2,
+      value: "",
+    };
+
+    const updatedSlots = [...vinModalSlots, newSlot].sort(
+      (a, b) => a.slotNumber - b.slotNumber
+    );
+
+    setVinModalSlots(updatedSlots);
+    vinForm.setFieldsValue({
+      [flatKey]: "",
+    });
   };
 
   const startEditing = useCallback(
@@ -734,19 +903,27 @@ const DispatchDashboard = () => {
         payload
       );
 
-      const updatedVehicle = response.data;
+      const updatedVehicleRaw = {
+        ...record,
+        ...response.data,
+      };
+      const updatedVehicle = normalizeVehicleVinData(updatedVehicleRaw);
+
+      if (updatedVehicle.id === undefined || updatedVehicle.id === null) {
+        updatedVehicle.id = record.id;
+      }
 
       setDispatches((prev) =>
         prev.map((item) =>
           String(item.id) === String(record.id)
-            ? { ...item, ...updatedVehicle }
+            ? updatedVehicle
             : item
         )
       );
       setFilteredDispatches((prev) =>
         prev.map((item) =>
           String(item.id) === String(record.id)
-            ? { ...item, ...updatedVehicle }
+            ? updatedVehicle
             : item
         )
       );
@@ -768,6 +945,39 @@ const DispatchDashboard = () => {
         String(editingCell.id) === String(record.id) &&
         editingCell.dataIndex === dataIndex;
       if (isEditing) {
+        if (options.inputType === "select") {
+          const selectValue =
+            editingValue && editingValue !== "" ? editingValue : undefined;
+
+          return (
+            <Select
+              value={selectValue}
+              onChange={(selectedValue) => {
+                setEditingValue(selectedValue ?? "");
+                handleSave(record, dataIndex, selectedValue ?? "");
+              }}
+              options={options.selectOptions ?? []}
+              loading={options.loading}
+              showSearch
+              optionFilterProp="label"
+              placeholder={options.placeholder}
+              disabled={savingCell}
+              autoFocus
+              onBlur={() => {
+                if (!savingCell) {
+                  cancelEditing();
+                }
+              }}
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toString()
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+            />
+          );
+        }
+
         return (
           <Input
             value={editingValue}
@@ -809,11 +1019,35 @@ const DispatchDashboard = () => {
           style={{ cursor: options.readOnly ? "not-allowed" : "pointer" }}
           onClick={() => {
             if (!options.readOnly) {
+              if (typeof options.copyOnClick === "function") {
+                const textToCopy = options.copyOnClick(value, record);
+                if (textToCopy !== undefined && textToCopy !== null) {
+                  const normalizedText =
+                    typeof textToCopy === "string"
+                      ? textToCopy
+                      : String(textToCopy ?? "");
+                  if (normalizedText.trim() !== "") {
+                    copyTextToClipboard(normalizedText);
+                  }
+                }
+              }
               startEditing(record, dataIndex, value);
             }
           }}
           onKeyDown={(e) => {
             if (!options.readOnly && (e.key === "Enter" || e.key === " ")) {
+              if (typeof options.copyOnClick === "function") {
+                const textToCopy = options.copyOnClick(value, record);
+                if (textToCopy !== undefined && textToCopy !== null) {
+                  const normalizedText =
+                    typeof textToCopy === "string"
+                      ? textToCopy
+                      : String(textToCopy ?? "");
+                  if (normalizedText.trim() !== "") {
+                    copyTextToClipboard(normalizedText);
+                  }
+                }
+              }
               startEditing(record, dataIndex, value);
             }
           }}
@@ -924,39 +1158,112 @@ const DispatchDashboard = () => {
       title: t("auction"),
       dataIndex: "auction",
       key: "auction",
-      render: renderEditableCell("auction"),
+      sorter: (a, b) => {
+        const left = (a.auction ?? "").toString().toLowerCase();
+        const right = (b.auction ?? "").toString().toLowerCase();
+        if (left < right) return -1;
+        if (left > right) return 1;
+        return 0;
+      },
+      sortDirections: ["ascend", "descend"],
+      render: renderEditableCell("auction", {
+        inputType: "select",
+        selectOptions: auctionOptions,
+        loading: auctionOptionsLoading,
+        placeholder: t("select_auction"),
+      }),
     },
     {
       title: t("pickup_date"),
       dataIndex: "pickupDate",
       key: "pickupDate",
+      sorter: (a, b) => {
+        const formats = [moment.ISO_8601, "YYYY-MM-DD", "DD/MM"].map(
+          (fmt) => fmt
+        );
+        const left = moment(a.pickupDate, formats, true);
+        const right = moment(b.pickupDate, formats, true);
+
+        if (!left.isValid() && !right.isValid()) return 0;
+        if (!left.isValid()) return 1;
+        if (!right.isValid()) return -1;
+
+        return left.valueOf() - right.valueOf();
+      },
+      sortDirections: ["ascend", "descend"],
       render: renderEditableCell("pickupDate"),
     },
     {
       title: t("delivery_date"),
       dataIndex: "deliveryDate",
       key: "deliveryDate",
+      sorter: (a, b) => {
+        const formats = [moment.ISO_8601, "YYYY-MM-DD", "DD/MM"].map(
+          (fmt) => fmt
+        );
+        const left = moment(a.deliveryDate, formats, true);
+        const right = moment(b.deliveryDate, formats, true);
+
+        if (!left.isValid() && !right.isValid()) return 0;
+        if (!left.isValid()) return 1;
+        if (!right.isValid()) return -1;
+
+        return left.valueOf() - right.valueOf();
+      },
+      sortDirections: ["ascend", "descend"],
       render: renderEditableCell("deliveryDate"),
     },
     {
       title: t("appointment"),
       dataIndex: "appointment",
       key: "appointment",
+      sorter: (a, b) => {
+        const appointmentA = a.appointment ?? {};
+        const appointmentB = b.appointment ?? {};
+
+        const score = (appointment) => {
+          const auction = Boolean(appointment.auction);
+          const warehouse = Boolean(appointment.warehouse);
+
+          if (auction && warehouse) return 0; // both true
+          if (!auction && !warehouse) return 1; // both false
+          if (!auction && warehouse) return 2; // only warehouse
+          if (auction && !warehouse) return 3; // only auction
+
+          return 4;
+        };
+
+        const scoreA = score(appointmentA);
+        const scoreB = score(appointmentB);
+
+        if (scoreA !== scoreB) {
+          return scoreA - scoreB;
+        }
+
+        return 0;
+      },
+      sortDirections: ["ascend", "descend"],
       render: (_, record) => {
         const appointment = record.appointment ?? {};
         const slots = [
-          { key: "auction", label: t("auction") },
-          { key: "warehouse", label: t("warehouse") },
+          { key: "auction", label: "A" },
+          { key: "warehouse", label: "W" },
         ];
 
-        const tagsToRender = slots.filter(({ key }) => appointment[key] !== undefined);
+        const tagsToRender = slots.filter(
+          ({ key }) => appointment[key] !== undefined
+        );
 
         if (!tagsToRender.length) {
           return <span>-</span>;
         }
 
-        const recordIdString = record.id !== undefined && record.id !== null ? String(record.id) : null;
-        const isToggling = recordIdString !== null && togglingAppointmentId === recordIdString;
+        const recordIdString =
+          record.id !== undefined && record.id !== null
+            ? String(record.id)
+            : null;
+        const isToggling =
+          recordIdString !== null && togglingAppointmentId === recordIdString;
 
         return (
           <Space size="small">
@@ -991,18 +1298,42 @@ const DispatchDashboard = () => {
       title: t("warehouse"),
       dataIndex: "warehouse",
       key: "warehouse",
-      render: renderEditableCell("warehouse"),
+      sorter: (a, b) => {
+        const left = (a.warehouse ?? "").toString().toLowerCase();
+        const right = (b.warehouse ?? "").toString().toLowerCase();
+        if (left < right) return -1;
+        if (left > right) return 1;
+        return 0;
+      },
+      sortDirections: ["ascend", "descend"],
+      render: renderEditableCell("warehouse", {
+        inputType: "select",
+        selectOptions: warehouseOptions,
+        loading: warehouseOptionsLoading,
+        placeholder: t("select_warehouse"),
+      }),
     },
     {
       title: t("driver_number"),
       dataIndex: "driverNumber",
       key: "driverNumber",
-      render: renderEditableCell("driverNumber"),
+      render: renderEditableCell("driverNumber", {
+        copyOnClick: (cellValue) =>
+          typeof cellValue === "string" ? cellValue : cellValue ?? "",
+      }),
     },
     {
       title: t("route"),
       dataIndex: "route",
       key: "route",
+      sorter: (a, b) => {
+        const left = (a.route ?? "").toString().toLowerCase();
+        const right = (b.route ?? "").toString().toLowerCase();
+        if (left < right) return -1;
+        if (left > right) return 1;
+        return 0;
+      },
+      sortDirections: ["ascend", "descend"],
       render: renderEditableCell("route"),
     },
     {
@@ -1247,15 +1578,17 @@ const DispatchDashboard = () => {
 
             normalizedEntries.forEach(({ slot, value }) => {
               if (slot.flatKey !== "vin") {
-                const hadValueBefore = Object.prototype.hasOwnProperty.call(
-                  vinModalRecord,
-                  slot.flatKey
-                );
+                const hadValueBefore =
+                  Boolean(slot.value) ||
+                  Object.prototype.hasOwnProperty.call(
+                    vinModalRecord,
+                    slot.flatKey
+                  );
 
                 if (value) {
                   payload[slot.flatKey] = value;
                 } else if (hadValueBefore) {
-                  payload[slot.flatKey] = "";
+                  payload[slot.flatKey] = null;
                 }
               }
 
@@ -1298,22 +1631,35 @@ const DispatchDashboard = () => {
                 payload
               );
 
-              const updatedVehicle = response.data;
+              const updatedVehicleRaw = {
+                ...vinModalRecord,
+                ...response.data,
+              };
+              const updatedVehicle = normalizeVehicleVinData(updatedVehicleRaw);
+
+              if (
+                updatedVehicle.id === undefined ||
+                updatedVehicle.id === null
+              ) {
+                updatedVehicle.id = vinModalOriginalId;
+              }
 
               setDispatches((prev) =>
                 prev.map((item) =>
                   String(item.id) === String(vinModalOriginalId)
-                    ? { ...item, ...updatedVehicle }
+                    ? updatedVehicle
                     : item
                 )
               );
               setFilteredDispatches((prev) =>
                 prev.map((item) =>
                   String(item.id) === String(vinModalOriginalId)
-                    ? { ...item, ...updatedVehicle }
+                    ? updatedVehicle
                     : item
                 )
               );
+
+              await refetchDispatches();
 
               message.success(t("dispatch_updated_successfully"));
 
@@ -1337,7 +1683,7 @@ const DispatchDashboard = () => {
                   <Form.Item
                     key={slot.flatKey}
                     name={slot.flatKey}
-                    label={slot.label}
+                    label={`${t("vin")} #${slot.slotNumber}`}
                     rules={
                       slot.flatKey === "vin"
                         ? [{ required: true, message: t("vin_is_required") }]
@@ -1347,6 +1693,18 @@ const DispatchDashboard = () => {
                     <Input maxLength={17} placeholder={t("enter_vin")} />
                   </Form.Item>
                 ))}
+
+                {vinModalSlots.length < MAX_VEHICLE_SLOTS && (
+                  <Button
+                    type="dashed"
+                    block
+                    icon={<PlusOutlined />}
+                    onClick={handleAddVinSlot}
+                    style={{ marginBottom: 12 }}
+                  >
+                    {t("add_another_vin_code")}
+                  </Button>
+                )}
 
                 {vinModalSlots.length > 1 && (
                   <>

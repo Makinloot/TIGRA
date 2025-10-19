@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import vehicleRouter from "./routes/vehicleRouter.js";
+import warehousesRouter from "./routes/warehousesRouter.js";
+import auctionsRouter from "./routes/auctionsRouter.js";
 const app = express();
 
 app.set("trust proxy", 1);
@@ -12,5 +14,7 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // routes
 app.use("/vehicles", vehicleRouter);
+app.use("/warehouses", warehousesRouter);
+app.use("/auctions", auctionsRouter);
 
 export { app };

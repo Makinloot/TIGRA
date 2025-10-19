@@ -20,3 +20,63 @@
     #ffe6e6 20px
   ) !important; /* Police tape pattern - alternating red stripes */
 }
+
+.dispatch-row-appointment-none {
+  background-color: #fff1f0 !important; /* Ant Design red-1 */
+}
+
+.ant-table-tbody > tr.dispatch-row-appointment-none > td {
+  background-color: #fff1f0 !important;
+}
+
+.dispatch-row-appointment-both {
+  background-color: #f6ffed !important; /* Ant Design green-1 */
+}
+
+.ant-table-tbody > tr.dispatch-row-appointment-both > td {
+  background-color: #f6ffed !important;
+}
+
+.dispatch-row-appointment-partial {
+  background-color: #fffbe6 !important; /* Ant Design gold-1 */
+}
+
+.ant-table-tbody > tr.dispatch-row-appointment-partial > td {
+  background-color: #fffbe6 !important;
+}
+
+.ant-table-tbody
+  > tr.dispatch-row-appointment-none:hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-none.ant-table-row-hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-none.ant-table-row-selected
+  > td {
+  background-color: #fff1f0 !important;
+}
+
+.ant-table-tbody
+  > tr.dispatch-row-appointment-both:hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-both.ant-table-row-hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-both.ant-table-row-selected
+  > td {
+  background-color: #f6ffed !important;
+}
+
+.ant-table-tbody
+  > tr.dispatch-row-appointment-partial:hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-partial.ant-table-row-hover
+  > td,
+.ant-table-tbody
+  > tr.dispatch-row-appointment-partial.ant-table-row-selected
+  > td {
+  background-color: #fffbe6 !important;
+}

@@ -4,7 +4,6 @@ import axios from "axios";
 import moment from "moment";
 import {
   Modal,
-  Steps,
   Form,
   Input,
   Select,
@@ -15,89 +14,86 @@ import {
   Col,
   Space,
   message,
+  Divider,
 } from "antd";
 import { validateVIN } from "../../utils/cmsUtils";
-import {
-  getMockDriverStats,
-  mockAuctions,
-  mockWarehouses,
-} from "../../mocks/_mockData";
 import DriverAnalyticsPopup from "../DriverAnalyticsPopup";
 
 // TODO-FX: Connect to i18n library.
 const t = (key) =>
   key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
-const { Step } = Steps;
-const { Option } = Select;
 const MAX_VEHICLES = 5;
 
 const AddDispatchModal = ({ open, onClose, onSuccess }) => {
-  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [driverStats, setDriverStats] = useState(null);
   const [showDriverAnalytics, setShowDriverAnalytics] = useState(false);
+  const [auctionOptions, setAuctionOptions] = useState([]);
+  const [warehouseOptions, setWarehouseOptions] = useState([]);
   const formRef = useRef();
+  const vinDecodeCacheRef = useRef({});
 
   useEffect(() => {
     if (open && formRef.current) {
-      const vehicles = formRef.current.getFieldValue("vehicles");
-      if (!vehicles || vehicles.length === 0) {
+      const currentVehicles = formRef.current.getFieldValue("vehicles");
+      if (!Array.isArray(currentVehicles) || currentVehicles.length === 0) {
         formRef.current.setFieldsValue({ vehicles: [{}] });
       }
     }
   }, [open]);
 
-  const steps = [
-    {
-      title: t("core_info"),
-      description: t("vin_auction_warehouse"),
-    },
-    {
-      title: t("logistics_details"),
-      description: t("pickup_delivery_dates"),
-    },
-    {
-      title: t("financials"),
-      description: t("price_payment_status"),
-    },
-  ];
+  useEffect(() => {
+    if (!open) return;
 
-  const next = () => {
-    setCurrentStep(currentStep + 1);
-  };
+    const fetchOptions = async () => {
+      try {
+        const [auctionsResponse, warehousesResponse] = await Promise.all([
+          axios.get("http://localhost:3000/auctions"),
+          axios.get("http://localhost:3000/warehouses"),
+        ]);
 
-  const prev = () => {
-    setCurrentStep(currentStep - 1);
-  };
+        const mappedAuctions = (auctionsResponse.data ?? [])
+          .map((auction) => {
+            const name = auction?.name?.trim();
+            if (!name) {
+              return null;
+            }
+            return { value: name, label: name };
+          })
+          .filter(Boolean);
 
-  const handleVehicleVinBlur = async (value, index) => {
-    const form = formRef.current;
-    if (!form) return;
+        const mappedWarehouses = (warehousesResponse.data ?? [])
+          .map((warehouse) => {
+            const name = warehouse?.name?.trim();
+            if (!name) {
+              return null;
+            }
+            return { value: name, label: name };
+          })
+          .filter(Boolean);
 
-    const vin = value?.toString().trim().toUpperCase();
-    if (!vin) {
-      return;
-    }
-
-    if (!validateVIN(vin)) {
-      message.error(t("invalid_vin_format"));
-      return;
-    }
-
-    const existingVehicles = form.getFieldValue("vehicles") || [];
-    const vehicles = existingVehicles.map((vehicle) => ({ ...vehicle }));
-    vehicles[index] = {
-      ...(vehicles[index] || {}),
-      vin,
-      make: "",
-      model: "",
-      year: "",
+        setAuctionOptions(mappedAuctions);
+        setWarehouseOptions(mappedWarehouses);
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
+        message.error(t("failed_to_fetch_reference_data"));
+      }
     };
-    form.setFieldsValue({ vehicles });
-    form.validateFields([["vehicles", index, "vin"]]);
 
-    const hideMessage = message.loading(`${t("decoding_vin")}...`, 0);
+    fetchOptions();
+  }, [open]);
+  const decodeVinForVehicle = async (
+    vin,
+    index,
+    { showMessages = true } = {}
+  ) => {
+    const form = formRef.current;
+    if (!form || !vin) return;
+
+    const hideMessage = showMessages
+      ? message.loading(`${t("decoding_vin")}...`, 0)
+      : null;
 
     try {
       const { data } = await axios.get(
@@ -120,20 +116,81 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         year,
       };
       form.setFieldsValue({ vehicles: updatedVehicles });
+      form.validateFields([["vehicles", index, "vin"]]);
 
-      if (!make || !model || !year) {
-        message.warning(t("vin_decode_partial"));
-      } else {
-        message.success(t("vin_decode_success"));
+      vinDecodeCacheRef.current[index] = vin;
+
+      if (showMessages) {
+        if (!make || !model || !year) {
+          message.warning(t("vin_decode_partial"));
+        } else {
+          message.success(t("vin_decode_success"));
+        }
       }
     } catch (error) {
       console.error("Failed to decode VIN via NHTSA:", error);
-      message.error(t("failed_to_parse_vin"));
+      if (showMessages) {
+        message.error(t("failed_to_parse_vin"));
+      }
+      vinDecodeCacheRef.current[index] = undefined;
     } finally {
       if (typeof hideMessage === "function") {
         hideMessage();
       }
     }
+  };
+
+  const handleVehicleVinChange = async (
+    value,
+    index,
+    { showErrors = false } = {}
+  ) => {
+    const form = formRef.current;
+    if (!form) return;
+
+    const rawVin = value ?? "";
+    const vin = rawVin.toString().trim().toUpperCase();
+
+    const existingVehicles = form.getFieldValue("vehicles") || [];
+    const vehicles = existingVehicles.map((vehicle) => ({ ...vehicle }));
+    vehicles[index] = {
+      ...(vehicles[index] || {}),
+      vin,
+      make: "",
+      model: "",
+      year: "",
+    };
+
+    if (vehicles[index].vin !== existingVehicles[index]?.vin) {
+      form.setFieldsValue({ vehicles });
+    }
+
+    if (!vin) {
+      vinDecodeCacheRef.current[index] = undefined;
+      if (showErrors) {
+        form.validateFields([["vehicles", index, "vin"]]);
+      }
+      return;
+    }
+
+    if (vin.length < 17) {
+      vinDecodeCacheRef.current[index] = undefined;
+      return;
+    }
+
+    if (!validateVIN(vin)) {
+      vinDecodeCacheRef.current[index] = undefined;
+      if (showErrors) {
+        message.error(t("invalid_vin_format"));
+      }
+      return;
+    }
+
+    if (vinDecodeCacheRef.current[index] === vin) {
+      return;
+    }
+
+    await decodeVinForVehicle(vin, index, { showMessages: true });
   };
 
   // API call to add new vehicle in the system at @POST /vehicles
@@ -219,198 +276,205 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
   const handleCancel = () => {
     formRef.current?.resetFields();
     formRef.current?.setFieldsValue({ vehicles: [{}] });
-    setCurrentStep(0);
     setDriverStats(null);
     setShowDriverAnalytics(false);
     onClose();
   };
 
-  const renderStepContent = (step) => {
-    switch (step) {
-      case 0: // Core Info
-        return (
-          <Space direction="vertical" size="large" style={{ width: "100%" }}>
-            <Form.List name="vehicles">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map((field, index) => (
-                    <div
-                      key={field.key}
-                      style={{
-                        border: "1px solid #f0f0f0",
-                        borderRadius: 8,
-                        padding: 16,
-                      }}
-                    >
-                      <Row gutter={[16, 16]} align="middle">
-                        <Col xs={24} sm={index > 0 ? 16 : 24}>
-                          <Form.Item
-                            name={[field.name, "vin"]}
-                            fieldKey={[field.fieldKey, "vin"]}
-                            label={
-                              fields.length > 1
-                                ? `${t("vin")} #${index + 1}`
-                                : t("vin")
-                            }
-                            rules={[
-                              {
-                                validator: (_, value) => {
-                                  if (!value) {
-                                    return index === 0
-                                      ? Promise.reject(
-                                          new Error(t("vin_is_required"))
-                                        )
-                                      : Promise.resolve();
-                                  }
-                                  return validateVIN(value)
-                                    ? Promise.resolve()
-                                    : Promise.reject(
-                                        new Error(t("invalid_vin_format"))
-                                      );
-                                },
-                              },
-                            ]}
-                            validateTrigger="onBlur"
-                          >
-                            <Input
-                              placeholder={t("enter_17_character_vin")}
-                              onBlur={(e) =>
-                                handleVehicleVinBlur(e.target.value, field.name)
-                              }
-                              maxLength={17}
-                            />
-                          </Form.Item>
-                        </Col>
-                        {index > 0 && (
-                          <Col
-                            xs={24}
-                            sm={8}
-                            style={{
-                              display: "flex",
-                              justifyContent: "flex-end",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Button
-                              type="link"
-                              danger
-                              onClick={() => remove(field.name)}
-                            >
-                              {t("remove_vehicle")}
-                            </Button>
-                          </Col>
-                        )}
-                      </Row>
-                      <Row gutter={[16, 16]}>
-                        <Col xs={24} sm={8}>
-                          <Form.Item
-                            name={[field.name, "make"]}
-                            fieldKey={[field.fieldKey, "make"]}
-                            label={t("make")}
-                          >
-                            <Input disabled />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <Form.Item
-                            name={[field.name, "model"]}
-                            fieldKey={[field.fieldKey, "model"]}
-                            label={t("model")}
-                          >
-                            <Input disabled />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={8}>
-                          <Form.Item
-                            name={[field.name, "year"]}
-                            fieldKey={[field.fieldKey, "year"]}
-                            label={t("year")}
-                          >
-                            <Input disabled />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    </div>
-                  ))}
-                  <Button
-                    type="dashed"
-                    onClick={() => add({})}
-                    disabled={fields.length >= MAX_VEHICLES}
-                    block
-                    title={
-                      fields.length >= MAX_VEHICLES
-                        ? t("vehicle_limit_reached")
-                        : undefined
-                    }
+  return (
+    <Modal
+      title={t("add_new_dispatch")}
+      open={open}
+      onCancel={handleCancel}
+      width={800}
+      centered
+      style={{ maxHeight: "95vh" }}
+      bodyStyle={{
+        maxHeight: "calc(95vh - 140px)",
+        overflowY: "auto",
+        overflowX: "hidden",
+      }}
+      footer={[
+        <Button key="cancel" onClick={handleCancel}>
+          {t("cancel")}
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          loading={isSubmitting}
+          onClick={() => formRef.current?.submit()}
+        >
+          {t("create_dispatch")}
+        </Button>,
+      ]}
+    >
+      <Form
+        ref={formRef}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{ vehicles: [{}] }}
+      >
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          <Form.List name="vehicles">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map((field, index) => (
+                  <div
+                    key={field.key}
+                    style={{
+                      border: "1px solid #f0f0f0",
+                      borderRadius: 8,
+                      padding: 16,
+                    }}
                   >
-                    {t("add_another_vehicle")}
-                  </Button>
-                </>
-              )}
-            </Form.List>
-
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12}>
-                <Form.Item
-                  name="auction"
-                  label={t("auction")}
-                  rules={[
-                    { required: true, message: t("auction_is_required") },
-                  ]}
+                    <Row gutter={[16, 16]} align="middle">
+                      <Col xs={24} sm={index > 0 ? 16 : 24}>
+                        <Form.Item
+                          name={[field.name, "vin"]}
+                          fieldKey={[field.fieldKey, "vin"]}
+                          label={
+                            fields.length > 1
+                              ? `${t("vin")} #${index + 1}`
+                              : t("vin")
+                          }
+                          rules={[
+                            {
+                              validator: (_, value) => {
+                                if (!value) {
+                                  return index === 0
+                                    ? Promise.reject(
+                                        new Error(t("vin_is_required"))
+                                      )
+                                    : Promise.resolve();
+                                }
+                                return validateVIN(value)
+                                  ? Promise.resolve()
+                                  : Promise.reject(
+                                      new Error(t("invalid_vin_format"))
+                                    );
+                              },
+                            },
+                          ]}
+                          validateTrigger="onBlur"
+                        >
+                          <Input
+                            placeholder={t("enter_17_character_vin")}
+                            onChange={(e) =>
+                              handleVehicleVinChange(e.target.value, field.name)
+                            }
+                            onBlur={(e) =>
+                              handleVehicleVinChange(
+                                e.target.value,
+                                field.name,
+                                {
+                                  showErrors: true,
+                                }
+                              )
+                            }
+                            maxLength={17}
+                          />
+                        </Form.Item>
+                      </Col>
+                      {index > 0 && (
+                        <Col
+                          xs={24}
+                          sm={8}
+                          style={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Button
+                            type="link"
+                            danger
+                            onClick={() => remove(field.name)}
+                          >
+                            {t("remove_vehicle")}
+                          </Button>
+                        </Col>
+                      )}
+                    </Row>
+                    <Row gutter={[16, 16]}>
+                      <Col xs={24} sm={8}>
+                        <Form.Item
+                          name={[field.name, "make"]}
+                          fieldKey={[field.fieldKey, "make"]}
+                          label={t("make")}
+                        >
+                          <Input disabled />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <Form.Item
+                          name={[field.name, "model"]}
+                          fieldKey={[field.fieldKey, "model"]}
+                          label={t("model")}
+                        >
+                          <Input disabled />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <Form.Item
+                          name={[field.name, "year"]}
+                          fieldKey={[field.fieldKey, "year"]}
+                          label={t("year")}
+                        >
+                          <Input disabled />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </div>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={() => add({})}
+                  disabled={fields.length >= MAX_VEHICLES}
+                  block
+                  title={
+                    fields.length >= MAX_VEHICLES
+                      ? t("vehicle_limit_reached")
+                      : undefined
+                  }
                 >
-                  <Select
-                    placeholder={t("select_auction")}
-                    options={[
-                      {
-                        value: "copart",
-                        label: "Copart",
-                      },
-                      {
-                        value: "iaai",
-                        label: "IAAI",
-                      },
-                      {
-                        value: "manheim",
-                        label: "Manheim",
-                      },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12}>
-                <Form.Item
-                  name="warehouse"
-                  label={t("warehouse")}
-                  rules={[
-                    { required: true, message: t("warehouse_is_required") },
-                  ]}
-                >
-                  <Select
-                    placeholder={t("select_warehouse")}
-                    options={[
-                      {
-                        value: "Barami",
-                        label: "Barami",
-                      },
-                      {
-                        value: "Poti",
-                        label: "Poti",
-                      },
-                      {
-                        value: "Tbilisi",
-                        label: "Tbilisi",
-                      },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Space>
-        );
+                  {t("add_another_vehicle")}
+                </Button>
+              </>
+            )}
+          </Form.List>
 
-      case 1: // Logistics Details
-        return (
+          <Divider orientation="left">{t("logistics_details")}</Divider>
           <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="auction"
+                label={t("auction")}
+                rules={[{ required: true, message: t("auction_is_required") }]}
+              >
+                <Select
+                  placeholder={t("select_auction")}
+                  loading={!auctionOptions.length}
+                  options={auctionOptions}
+                  showSearch
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="warehouse"
+                label={t("warehouse")}
+                rules={[
+                  { required: true, message: t("warehouse_is_required") },
+                ]}
+              >
+                <Select
+                  placeholder={t("select_warehouse")}
+                  loading={!warehouseOptions.length}
+                  options={warehouseOptions}
+                  showSearch
+                />
+              </Form.Item>
+            </Col>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="pickupDate"
@@ -460,10 +524,8 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
               </Form.Item>
             </Col>
           </Row>
-        );
 
-      case 2: // Financials
-        return (
+          <Divider orientation="left">{t("financials")}</Divider>
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12}>
               <Form.Item
@@ -480,147 +542,13 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 />
               </Form.Item>
             </Col>
-            {/* <Col xs={24} sm={12}>
-              <Form.Item
-                name="isPaid"
-                label={t("payment_status")}
-                rules={[
-                  { required: true, message: t("payment_status_is_required") },
-                ]}
-              >
-                <Select placeholder={t("select_payment_status")}>
-                  <Option value={false}>{t("pending")}</Option>
-                  <Option value={true}>{t("paid")}</Option>
-                </Select>
-              </Form.Item>
-            </Col> */}
-            {/* <Col xs={24} sm={12}>
-              <Form.Item
-                name="storageFee"
-                label={t("storage_fee")}
-                rules={[
-                  { required: true, message: t("storage_fee_is_required") },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  placeholder={t("enter_storage_fee")}
-                  prefix="$"
-                  min={0}
-                  precision={2}
-                  initialValue={0}
-                />
-              </Form.Item>
-            </Col> */}
             <Col xs={24}>
-              <Form.Item
-                name="comment"
-                label={t("comment")}
-                rules={[{ required: true, message: t("comment_is_required") }]}
-              >
+              <Form.Item name="comment" label={t("comment")}>
                 <Input.TextArea placeholder={t("enter_comment")} rows={3} />
               </Form.Item>
             </Col>
           </Row>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const isStepComplete = (step) => {
-    const form = formRef.current;
-    if (!form) return false;
-
-    switch (step) {
-      case 0:
-        return (
-          (form.getFieldValue("vehicles")?.[0]?.vin || "") &&
-          form.getFieldValue("auction") &&
-          form.getFieldValue("warehouse")
-        );
-      case 1:
-        return (
-          form.getFieldValue("pickupDate") &&
-          form.getFieldValue("deliveryDate") &&
-          form.getFieldValue("driverNumber") &&
-          form.getFieldValue("route")
-        );
-      case 2:
-        return (
-          form.getFieldValue("price") !== undefined &&
-          form.getFieldValue("comment")
-        );
-      default:
-        return false;
-    }
-  };
-
-  const canProceed = () => {
-    return true; // Temporarily allow proceeding for testing UI
-  };
-
-  const canSubmit = () => {
-    return steps.every((_, index) => isStepComplete(index));
-  };
-
-  return (
-    <Modal
-      title={t("add_new_dispatch")}
-      open={open}
-      onCancel={handleCancel}
-      width={800}
-      footer={[
-        <Button key="cancel" onClick={handleCancel}>
-          {t("cancel")}
-        </Button>,
-        currentStep > 0 && (
-          <Button key="prev" onClick={prev}>
-            {t("previous")}
-          </Button>
-        ),
-        currentStep < steps.length - 1 ? (
-          <Button
-            key="next"
-            type="primary"
-            onClick={next}
-            disabled={!canProceed()}
-          >
-            {t("next")}
-          </Button>
-        ) : (
-          <Button
-            key="submit"
-            type="primary"
-            loading={isSubmitting}
-            onClick={() => formRef.current?.submit()}
-            disabled={!canSubmit()}
-          >
-            {t("create_dispatch")}
-          </Button>
-        ),
-      ]}
-    >
-      <div style={{ marginBottom: 24 }}>
-        <Steps current={currentStep} size="small">
-          {steps.map((step, index) => (
-            <Step
-              key={index}
-              title={step.title}
-              description={step.description}
-            />
-          ))}
-        </Steps>
-      </div>
-
-      <Form
-        ref={formRef}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{ vehicles: [{}] }}
-      >
-        {renderStepContent(currentStep)}
+        </Space>
       </Form>
 
       <DriverAnalyticsPopup
