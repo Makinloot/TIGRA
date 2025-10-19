@@ -248,22 +248,25 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         model: primaryVehicle.model,
         year: primaryVehicle.year,
         additionalVehicles,
-        vehicles: normalizedVehicles,
-        creationDate: moment().format("DD/MM/YYYY HH:mm"),
-        appointment: {
-          auction: false,
-          warehouse: false,
-        },
       };
 
       const response = await axios.post(
         "http://localhost:3000/vehicles",
         finalData
       );
-      const data = response.data;
-      console.log("DATA FROM API", data);
+
+      const savedDispatch = response.data ?? {};
+      const recordId = savedDispatch._id ?? savedDispatch.id;
+
+      const normalizedDispatch = {
+        ...savedDispatch,
+        id: recordId,
+        _id: recordId,
+      };
+
+      console.log("DATA FROM API", normalizedDispatch);
       message.success(t("dispatch_created_successfully"));
-      onSuccess?.();
+      onSuccess?.(normalizedDispatch);
       onClose();
     } catch (error) {
       console.error("Failed to create dispatch:", error);

@@ -871,7 +871,8 @@ const DispatchDashboard = () => {
       return;
     }
 
-    const trimmedValue = typeof value === "string" ? value.trim() : value;
+    const trimmedValue =
+      typeof value === "string" ? value.trim().toUpperCase() : value;
     const originalValue = record[dataIndex];
 
     if (
@@ -887,8 +888,19 @@ const DispatchDashboard = () => {
       return;
     }
 
-    const payloadValue =
-      dataIndex === "price" ? Number(trimmedValue) : trimmedValue;
+    let payloadValue;
+    if (dataIndex === "price") {
+      payloadValue = Number(trimmedValue);
+    } else if (
+      dataIndex.startsWith("vin") ||
+      dataIndex.startsWith("make") ||
+      dataIndex.startsWith("model") ||
+      dataIndex.startsWith("year")
+    ) {
+      payloadValue = trimmedValue || null;
+    } else {
+      payloadValue = trimmedValue;
+    }
 
     if (dataIndex === "price" && Number.isNaN(payloadValue)) {
       message.error(t("invalid_price_value"));

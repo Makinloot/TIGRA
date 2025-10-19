@@ -1,47 +1,50 @@
 import axios from "axios";
+import Vehicle from "../models/vehicleModel.js";
 
-let testData = [
-  {
-    id: 1,
-    auction: "iaai",
-    comment: "asdasd",
-    creationDate: "2025-10-18T19:59:28.000Z",
-    driverNumber: "123456",
-    price: 1000,
-    route: "asdasd",
-    warehouse: "Barami",
-    vin: "12345678901234567",
-    make: "TOYOTA",
-    model: "Prius C",
-    year: "2015",
-    pickupDate: "18/10",
-    deliveryDate: "18/10",
-    appointment: {
-      auction: true,
-      warehouse: true,
-    },
-  },
-];
+const normalizeVehicleDoc = (doc) => {
+  if (!doc) return doc;
 
-const getNumericId = (value) => {
-  // Treat both numeric and string IDs uniformly when calculating the next ID
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+  const json = doc.toObject ? doc.toObject() : { ...doc };
+
+  if (json._id) {
+    json.id = json._id.toString();
+  }
+
+  delete json._id;
+  delete json.__v;
+
+  if (
+    json.appointment &&
+    typeof json.appointment === "object" &&
+    "appointment" in json.appointment
+  ) {
+    json.appointment = json.appointment.appointment;
+  }
+
+  return json;
 };
 
-const generateVehicleId = () => {
-  // Next ID is derived from the current max to keep identifiers stable across restarts
-  const numericIds = testData
-    .map((vehicle) => getNumericId(vehicle.id))
-    .filter((id) => id !== null);
-  const maxId = numericIds.length ? Math.max(...numericIds) : 0;
-  return maxId + 1;
+const applyAppointmentUpdate = (payload = {}) => {
+  const { appointment, _id, id, __v, createdAt, updatedAt, ...rest } = payload;
+
+  const update = { ...rest };
+
+  if (appointment !== undefined) {
+    update.appointment = {
+      auction: Boolean(appointment?.auction),
+      warehouse: Boolean(appointment?.warehouse),
+    };
+  }
+
+  return update;
 };
 
 // Fetch all vehicles @route GET /vehicles
-function getAllVehicles(req, res) {
+async function getAllVehicles(req, res) {
   try {
-    res.status(200).json(testData);
+    const vehicles = await Vehicle.find().lean();
+    const normalized = vehicles.map((vehicle) => normalizeVehicleDoc(vehicle));
+    res.status(200).json(normalized);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
@@ -49,16 +52,35 @@ function getAllVehicles(req, res) {
 }
 
 // Add a vehicle @route POST /vehicles
-function addVehicle(req, res) {
-  console.log(req.body);
+async function addVehicle(req, res) {
   try {
-    // Server owns ID generation to ensure uniqueness regardless of client input
-    const newVehicle = {
-      id: generateVehicleId(),
-      ...req.body,
-    };
-    testData.push(newVehicle);
-    res.status(200).json(newVehicle);
+    const payload = applyAppointmentUpdate(req.body);
+
+    if (!payload.vin) {
+      return res.status(400).json({ message: "Primary VIN is required" });
+    }
+
+    payload.vin = payload.vin.trim().toUpperCase();
+
+    try {
+      const decoded = await decodeVinSafe(payload.vin);
+
+      if (decoded) {
+        const { make = "", model = "", year = "" } = decoded;
+        payload.make = make;
+        payload.model = model;
+        payload.year = year;
+      }
+    } catch (decodeError) {
+      return res.status(502).json({
+        message: "Failed to decode VIN via NHTSA",
+        error: decodeError.message,
+      });
+    }
+
+    const vehicle = await Vehicle.create(payload);
+    const normalized = normalizeVehicleDoc(vehicle);
+    res.status(201).json(normalized);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
@@ -93,7 +115,7 @@ const decodeVinSafe = async (vin) => {
 
 async function updateVehicle(req, res) {
   const { id: idParam } = req.params;
-  const { additionalVehicles: incomingAdditionalVehicles, ...flatUpdates } =
+  const { additionalVehicles: _unusedAdditionalVehicles, ...flatUpdates } =
     req.body;
 
   try {
@@ -103,20 +125,24 @@ async function updateVehicle(req, res) {
         .json({ message: "Vehicle ID parameter is required" });
     }
 
-    const vehicleIndex = testData.findIndex(
-      (vehicle) => String(vehicle.id) === String(idParam)
-    );
+    const existingVehicleDoc = await Vehicle.findById(idParam);
 
-    if (vehicleIndex === -1) {
+    if (!existingVehicleDoc) {
       return res
         .status(404)
         .json({ message: `Vehicle with ID ${idParam} not found` });
     }
 
-    const existingVehicle = testData[vehicleIndex];
+    const existingVehicle = normalizeVehicleDoc(existingVehicleDoc);
     // Work on a copy so we can compute the final payload before committing
     const updatedVehicle = { ...existingVehicle };
     const updatedAdditionalVehicles = [];
+    const unsetFields = {};
+
+    const markUnset = (key) => {
+      if (!key) return;
+      unsetFields[key] = "";
+    };
 
     const slotConfigs = Array.from({ length: MAX_VEHICLE_SLOTS }, (_, idx) => {
       const slotNumber = idx + 1;
@@ -177,6 +203,10 @@ async function updateVehicle(req, res) {
           delete updatedVehicle[makeKey];
           delete updatedVehicle[modelKey];
           delete updatedVehicle[yearKey];
+          markUnset(vinKey);
+          markUnset(makeKey);
+          markUnset(modelKey);
+          markUnset(yearKey);
           continue;
         }
 
@@ -261,14 +291,63 @@ async function updateVehicle(req, res) {
       if (value === undefined) {
         // Undefined removes a property so UI can clear fields explicitly
         delete updatedVehicle[key];
+        markUnset(key);
       } else {
         updatedVehicle[key] = value;
       }
     });
 
-    testData[vehicleIndex] = updatedVehicle;
+    if (cleanedAdditionalVehicles.length) {
+      updatedVehicle.additionalVehicles = cleanedAdditionalVehicles;
+    } else {
+      delete updatedVehicle.additionalVehicles;
+      markUnset("additionalVehicles");
+    }
 
-    return res.status(200).json(updatedVehicle);
+    const serializedUpdate = applyAppointmentUpdate(updatedVehicle);
+
+    if (typeof serializedUpdate.vin === "string") {
+      serializedUpdate.vin = serializedUpdate.vin.trim().toUpperCase();
+    }
+
+    Object.keys(serializedUpdate).forEach((key) => {
+      if (serializedUpdate[key] === undefined) {
+        delete serializedUpdate[key];
+      }
+    });
+
+    const updatePayload = {};
+
+    if (Object.keys(serializedUpdate).length) {
+      updatePayload.$set = serializedUpdate;
+    }
+
+    if (Object.keys(unsetFields).length) {
+      updatePayload.$unset = unsetFields;
+    }
+
+    if (!Object.keys(updatePayload).length) {
+      const normalized = normalizeVehicleDoc(existingVehicleDoc);
+      return res.status(200).json(normalized);
+    }
+
+    await Vehicle.findByIdAndUpdate(idParam, updatePayload, {
+      new: false,
+      runValidators: true,
+      timestamps: true,
+    });
+
+    const savedVehicle = await Vehicle.findById(idParam);
+
+    if (!savedVehicle) {
+      return res
+        .status(404)
+        .json({ message: `Vehicle with ID ${idParam} not found after update` });
+    }
+
+    const normalized = normalizeVehicleDoc(savedVehicle);
+
+    return res.status(200).json(normalized);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: error.message });
@@ -276,7 +355,7 @@ async function updateVehicle(req, res) {
 }
 
 // Delete a vehicle @route DELETE /vehicles/:id
-function deleteVehicle(req, res) {
+async function deleteVehicle(req, res) {
   const { id: idParam } = req.params;
 
   try {
@@ -286,21 +365,19 @@ function deleteVehicle(req, res) {
         .json({ message: "Vehicle ID parameter is required" });
     }
 
-    const vehicleIndex = testData.findIndex(
-      (vehicle) => String(vehicle.id) === String(idParam)
-    );
+    const existingVehicle = await Vehicle.findById(idParam);
 
-    if (vehicleIndex === -1) {
+    if (!existingVehicle) {
       return res
         .status(404)
         .json({ message: `Vehicle with ID ${idParam} not found` });
     }
 
-    const [removedVehicle] = testData.splice(vehicleIndex, 1);
+    await Vehicle.findByIdAndDelete(idParam);
 
     return res.status(200).json({
       message: `Vehicle with ID ${idParam} deleted successfully`,
-      vehicle: removedVehicle,
+      vehicle: normalizeVehicleDoc(existingVehicle),
     });
   } catch (error) {
     console.log(error);
