@@ -3,6 +3,7 @@ import cors from "cors";
 import vehicleRouter from "./routes/vehicleRouter.js";
 import warehousesRouter from "./routes/warehousesRouter.js";
 import auctionsRouter from "./routes/auctionsRouter.js";
+import copartLocationsRouter from "./routes/copartLocationsRouter.js";
 const app = express();
 
 app.set("trust proxy", 1);
@@ -16,5 +17,6 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 app.use("/vehicles", vehicleRouter);
 app.use("/warehouses", warehousesRouter);
 app.use("/auctions", auctionsRouter);
+app.use("/copartLocations", copartLocationsRouter);
 
 export { app };

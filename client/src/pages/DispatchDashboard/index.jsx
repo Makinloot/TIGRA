@@ -1026,7 +1026,11 @@ const DispatchDashboard = () => {
         : null;
 
       const cellIdentifierSource =
-        record.id ?? record._id ?? record.vin ?? record.dispatchNumber ?? recordIndex;
+        record.id ??
+        record._id ??
+        record.vin ??
+        record.dispatchNumber ??
+        recordIndex;
       const cellKey = `${String(cellIdentifierSource)}::${dataIndex}`;
 
       const handleActivation = () => {
@@ -1179,7 +1183,7 @@ const DispatchDashboard = () => {
       },
     },
     {
-      title: t("vehicleInfo"),
+      title: t("Vehicle"),
       dataIndex: "vehicleInfo",
       key: "vehicleInfo",
       render: (_, record) => renderVehicleInfoCell(record),

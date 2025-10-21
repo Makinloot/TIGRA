@@ -39,6 +39,7 @@ import LazyLoader from "./components/LazyLoader";
 import { themeConfig, darkThemeConfig } from "./theme/themeConfig";
 import { topAuctions, keyMetrics } from "./mocks/_mockData";
 import "./App.css";
+import CrmPayment from "./pages/CrmPayment";
 
 function App() {
   const [isDark, setIsDark] = useState(false);
@@ -179,6 +180,7 @@ function App() {
                       />
                     }
                   />
+                  <Route path="payment" element={<CrmPayment />} />
                   <Route
                     path="dispatch"
                     element={
