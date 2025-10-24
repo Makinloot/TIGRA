@@ -664,14 +664,18 @@ const DispatchDashboard = () => {
       };
 
       setDispatches((prev) =>
-        prev.map((item) =>
-          String(item.id) === idString ? updatedVehicle(item) : item
-        )
+        prev
+          .map((item) =>
+            String(item.id) === idString ? updatedVehicle(item) : item
+          )
+          .filter((item) => item?.canceled !== true)
       );
       setFilteredDispatches((prev) =>
-        prev.map((item) =>
-          String(item.id) === idString ? updatedVehicle(item) : item
-        )
+        prev
+          .map((item) =>
+            String(item.id) === idString ? updatedVehicle(item) : item
+          )
+          .filter((item) => item?.canceled !== true)
       );
 
       message.success(t("dispatch_cancelled_successfully"));
@@ -1392,44 +1396,9 @@ const DispatchDashboard = () => {
                 allowClear
               />
             </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <Select
-                mode="multiple"
-                placeholder={t("filter_by_status")}
-                value={statusFilter}
-                onChange={setStatusFilter}
-                style={{ width: "100%" }}
-                allowClear
-              >
-                <Select.Option value="new">{t("new")}</Select.Option>
-                <Select.Option value="pending_payment">
-                  {t("pending_payment")}
-                </Select.Option>
-                <Select.Option value="overdue">{t("overdue")}</Select.Option>
-                <Select.Option value="paid">{t("paid")}</Select.Option>
-              </Select>
-            </Col>
-            <Col xs={24} sm={12} md={8} lg={6}>
-              <RangePicker
-                placeholder={[t("pickup_date_from"), t("pickup_date_to")]}
-                value={dateRange}
-                onChange={setDateRange}
-                style={{ width: "100%" }}
-              />
-            </Col>
+
             <Col xs={24} sm={12} md={8} lg={6}>
               <Space>
-                <Button
-                  type="primary"
-                  icon={<FilterOutlined />}
-                  disabled={
-                    !searchValue &&
-                    statusFilter.length === 0 &&
-                    (!dateRange || dateRange.length === 0)
-                  }
-                >
-                  {t("apply_filters")}
-                </Button>
                 <Button
                   icon={<ClearOutlined />}
                   onClick={clearFilters}
