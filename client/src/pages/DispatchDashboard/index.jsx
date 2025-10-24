@@ -2,6 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { CSVLink } from "react-csv";
 import moment from "moment";
 import {
+  extractAdditionalVehicles,
+  renderVehicleInfoCell as renderVehicleInfoCellUtil,
+  renderEditableCell as renderEditableCellUtil,
+} from "../../utils/TableFunctions";
+import {
   Card,
   Row,
   Col,
@@ -44,7 +49,6 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import AddDispatchModal from "../../components/AddDispatchModal";
-import CancelDispatchModal from "../../components/CancelDispatchModal";
 import AuditLogDrawer from "../../components/AuditLogDrawer";
 import { holdPayment } from "../../utils/cmsUtils";
 import PropTypes from "prop-types";
@@ -55,6 +59,7 @@ import {
 } from "../../mocks/_mockData";
 import "./index.css";
 import axios from "axios";
+import { useCopartLocations } from "../../context/copartLocationsContext";
 
 const { Column } = Table;
 const { RangePicker } = DatePicker;
@@ -94,40 +99,6 @@ const normalizeVehicleVinData = (vehicle) => {
   }
 
   return normalized;
-};
-
-const extractAdditionalVehicles = (record) => {
-  const additional = Array.isArray(record.additionalVehicles)
-    ? record.additionalVehicles.filter((vehicle) => vehicle?.vin)
-    : [];
-
-  for (let i = 2; i <= 5; i += 1) {
-    const vinKey = `vin${i}`;
-    const makeKey = `make${i}`;
-    const modelKey = `model${i}`;
-    const yearKey = `year${i}`;
-
-    if (record[vinKey]) {
-      additional.push({
-        vin: record[vinKey],
-        make: record[makeKey],
-        model: record[modelKey],
-        year: record[yearKey],
-      });
-    }
-  }
-
-  const uniqueByVin = [];
-  const seen = new Set();
-
-  additional.forEach((vehicle) => {
-    const vin = vehicle?.vin;
-    if (!vin || seen.has(vin)) return;
-    seen.add(vin);
-    uniqueByVin.push(vehicle);
-  });
-
-  return uniqueByVin;
 };
 
 const handleDeleteDispatchFactory =
@@ -177,12 +148,54 @@ const DispatchDashboard = () => {
   const [vinModalSubmitting, setVinModalSubmitting] = useState(false);
   const [vinModalSlots, setVinModalSlots] = useState([]);
   const [vinForm] = Form.useForm();
+  const [cancelForm] = Form.useForm();
   const [togglingAppointmentId, setTogglingAppointmentId] = useState(null);
   const [auctionOptions, setAuctionOptions] = useState([]);
   const [warehouseOptions, setWarehouseOptions] = useState([]);
   const [auctionOptionsLoading, setAuctionOptionsLoading] = useState(false);
   const [warehouseOptionsLoading, setWarehouseOptionsLoading] = useState(false);
   const [editIntentCell, setEditIntentCell] = useState(null);
+  const { locations } = useCopartLocations();
+
+  const copartRouteOptions = useMemo(() => {
+    if (!Array.isArray(locations)) {
+      return [];
+    }
+
+    const seenPairs = new Set();
+    const options = [];
+
+    locations.forEach((stateEntry = {}) => {
+      const stateRaw = stateEntry?.state;
+      const state = typeof stateRaw === "string" ? stateRaw.trim() : "";
+      if (!state) {
+        return;
+      }
+
+      const stateLocations = Array.isArray(stateEntry.locations)
+        ? stateEntry.locations
+        : [];
+
+      stateLocations.forEach((locationEntry = {}) => {
+        const cityRaw = locationEntry?.city ?? locationEntry?.name;
+        const city = typeof cityRaw === "string" ? cityRaw.trim() : "";
+        if (!city) {
+          return;
+        }
+
+        const pairKey = `${state.toUpperCase()}-${city.toUpperCase()}`;
+        if (seenPairs.has(pairKey)) {
+          return;
+        }
+
+        seenPairs.add(pairKey);
+        const label = `${state} - ${city}`;
+        options.push({ label, value: label });
+      });
+    });
+
+    return options;
+  }, [locations]);
 
   const handleDeleteDispatch = useMemo(
     () =>
@@ -297,12 +310,17 @@ const DispatchDashboard = () => {
         setError(null);
 
         const response = await axios.get("http://localhost:3000/vehicles");
-        const data = Array.isArray(response.data)
-          ? response.data.map((item) => normalizeVehicleVinData(item))
-          : [];
-        // console.log("DATAAA", data);
-        setDispatches(data);
-        setFilteredDispatches(data);
+        const rawData = Array.isArray(response.data) ? response.data : [];
+        console.log(rawData);
+        const activeVehicles = rawData.filter(
+          (item) => item?.canceled !== true
+        );
+        const normalizedData = activeVehicles.map((item) =>
+          normalizeVehicleVinData(item)
+        );
+
+        setDispatches(normalizedData);
+        setFilteredDispatches(normalizedData);
       } catch (err) {
         setError(t("failed_to_load_dispatches"));
         console.error("Failed to load dispatch vehicles:", err);
@@ -532,89 +550,6 @@ const DispatchDashboard = () => {
     return slots;
   }, []);
 
-  // Render payment status with dynamic timers (Spec §2)
-  // const renderPaymentStatus = (status, record) => {
-  //   // Green status - Paid
-  //   if (status === "paid") {
-  //     return (
-  //       <Tag color="green" icon={<CheckCircleOutlined />}>
-  //         {t("paid")}
-  //       </Tag>
-  //     );
-  //   }
-
-  //   // Orange status - On Hold (Police Tape)
-  //   if (status === "on_hold") {
-  //     return (
-  //       <Tag color="orange" icon={<PauseCircleOutlined />}>
-  //         {t("on_hold")}
-  //       </Tag>
-  //     );
-  //   }
-
-  //   // Red status - Overdue
-  //   if (status === "overdue") {
-  //     return (
-  //       <Tag color="red" icon={<ExclamationCircleOutlined />}>
-  //         {t("payment_overdue")}
-  //       </Tag>
-  //     );
-  //   }
-
-  //   // Yellow status - Pending with countdown timer (Spec §2)
-  //   if (status === "pending" && record.deliveryDate) {
-  //     const deliveryDate = new Date(record.deliveryDate);
-  //     const now = new Date();
-
-  //     if (deliveryDate > now) {
-  //       // Show countdown timer for pending payments
-  //       return (
-  //         <Statistic.Timer
-  //           title={t("payment_due_in")}
-  //           value={deliveryDate}
-  //           format="D[d] H[h] m[m] s[s]"
-  //           size="small"
-  //           type="countdown"
-  //           onFinish={() => {
-  //             // When timer expires, could trigger status update
-  //             console.log("Payment timer expired for dispatch:", record.id);
-  //           }}
-  //         />
-  //       );
-  //     } else {
-  //       // Past due date - should be overdue
-  //       return (
-  //         <Tag color="red" icon={<ExclamationCircleOutlined />}>
-  //           {t("payment_overdue")}
-  //         </Tag>
-  //       );
-  //     }
-  //   }
-
-  //   // Default pending status
-  //   return (
-  //     <Tag color="blue" icon={<ClockCircleOutlined />}>
-  //       {t("pending")}
-  //     </Tag>
-  //   );
-  // };
-
-  // Render photo status
-  // const renderPhotoStatus = (status) => {
-  //   return (
-  //     <Tooltip
-  //       title={
-  //         status === "complete" ? t("photos_complete") : t("photos_missing")
-  //       }
-  //     >
-  //       <Badge
-  //         status={status === "complete" ? "success" : "error"}
-  //         text={<CameraOutlined />}
-  //       />
-  //     </Tooltip>
-  //   );
-  // };
-
   // Clear all filters
   const clearFilters = () => {
     setSearchValue("");
@@ -622,14 +557,19 @@ const DispatchDashboard = () => {
     setDateRange([]);
   };
 
-  // Refetch dispatches data
+  // Refetch dispatches data (filters out cancelled vehicles)
   const refetchDispatches = async () => {
     try {
       setLoading(true);
       const response = await axios.get("http://localhost:3000/vehicles");
-      const data = response.data;
-      setDispatches(data);
-      setFilteredDispatches(data);
+      const rawData = Array.isArray(response.data) ? response.data : [];
+      const activeVehicles = rawData.filter((item) => item?.canceled !== true);
+      const normalizedData = activeVehicles.map((item) =>
+        normalizeVehicleVinData(item)
+      );
+
+      setDispatches(normalizedData);
+      setFilteredDispatches(normalizedData);
     } catch (err) {
       setError(t("failed_to_load_dispatches"));
       console.error("Failed to refetch dispatch vehicles:", err);
@@ -638,101 +578,10 @@ const DispatchDashboard = () => {
     }
   };
 
-  // Handle payment hold (Spec §5.2)
-  // const handleHoldPayment = async (dispatchId) => {
-  //   Modal.confirm({
-  //     title: t("confirm_hold_payment"),
-  //     content: t("hold_payment_warning"),
-  //     okText: t("confirm"),
-  //     cancelText: t("cancel"),
-  //     okType: "danger",
-  //     onOk: async () => {
-  //       try {
-  //         await holdPayment(dispatchId);
-
-  //         // Update local state to reflect on_hold status
-  //         setDispatches((prevDispatches) =>
-  //           prevDispatches.map((dispatch) =>
-  //             dispatch.id === dispatchId
-  //               ? {
-  //                   ...dispatch,
-  //                   paymentStatus: "on_hold",
-  //                   dispatchStatus: "on_hold",
-  //                 }
-  //               : dispatch
-  //           )
-  //         );
-
-  //         // TODO-FX: Auto-create QC investigation task and open task modal
-  //         // Enhancement: After payment hold, automatically create a QC investigation task
-  //         // This connects the payment hold workflow to the formal task management system
-  //         const dispatch = dispatches.find((d) => d.id === dispatchId);
-  //         if (dispatch) {
-  //           // Create QC investigation task
-  //           const qcTask = {
-  //             id: `qc_${dispatchId}_${Date.now()}`,
-  //             title: t("qc_issue_investigation"),
-  //             status: "pending",
-  //             assignedTo: "role_2", // Logistics/Shipping Coordinator
-  //             relatedVin: dispatch.vin,
-  //             createdBy: "role_3", // Payment role (current user)
-  //             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  //               .toISOString()
-  //               .split("T")[0], // 7 days from now
-  //           };
-
-  //           // TODO-FX: Replace with real API call to create task
-  //           // For now, add to mockTasks array
-  //           mockTasks.push(qcTask);
-
-  //           // TODO-FX: Open the Add New Task modal in DispatchDetailsDrawer with pre-filled data
-  //           // This requires cross-component communication (Context or global state)
-  //           // For now, just show a success message indicating task was created
-  //           message.success(
-  //             `${t("payment_held_successfully")} ${t("qc_task_created")}`
-  //           );
-  //         } else {
-  //           message.success(t("payment_held_successfully"));
-  //         }
-  //       } catch (error) {
-  //         console.error("Failed to hold payment:", error);
-  //         message.error(t("failed_to_hold_payment"));
-  //       }
-  //     },
-  //   });
-  // };
-
-  // Handle view details (placeholder for future implementation)
-  const handleViewDetails = (dispatchId) => {
-    // TODO-FX: Implement view details modal
-    console.log("Viewing details for dispatch:", dispatchId);
-    message.info(t("view_details_not_implemented"));
-  };
-
   // Handle audit log
   const openAuditLog = (dispatchId) => {
     setSelectedDispatchId(dispatchId);
     setIsAuditDrawerOpen(true);
-  };
-
-  // Handle cancel dispatch
-  const openCancelModal = (dispatchId) => {
-    setSelectedDispatchId(dispatchId);
-    setIsCancelModalOpen(true);
-  };
-
-  // Handle cancel modal success
-  const handleCancelSuccess = () => {
-    // Update local state to reflect cancelled status
-    setDispatches((prevDispatches) =>
-      prevDispatches.map((dispatch) =>
-        dispatch.id === selectedDispatchId
-          ? { ...dispatch, dispatchStatus: "cancelled" }
-          : dispatch
-      )
-    );
-    setIsCancelModalOpen(false);
-    setSelectedDispatchId(null);
   };
 
   // CSV export configuration
@@ -763,35 +612,79 @@ const DispatchDashboard = () => {
     price: item.price ?? "",
   }));
 
-  // Menu props for dropdown button
-  const menuProps = (record) => ({
-    items: [
-      {
-        key: "audit",
-        icon: <HistoryOutlined />,
-        label: t("audit_log"),
-        onClick: () => openAuditLog(record.id),
-      },
-      // {
-      //   key: "hold",
-      //   icon: <PauseCircleOutlined />,
-      //   label: t("hold_payment"),
-      //   onClick: () => handleHoldPayment(record.id),
-      //   disabled:
-      //     record.paymentStatus === "paid" || record.paymentStatus === "on_hold",
-      // },
-      {
-        key: "cancel",
-        icon: <CloseCircleOutlined />,
-        label: t("cancel_dispatch"),
-        danger: true,
-        onClick: () => openCancelModal(record.id),
-        disabled:
-          record.dispatchStatus === "completed" ||
-          record.dispatchStatus === "cancelled",
-      },
-    ],
-  });
+  const openCancelModal = (dispatchId) => {
+    setSelectedDispatchId(dispatchId);
+    setIsCancelModalOpen(true);
+    cancelForm.resetFields();
+  };
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false);
+    cancelForm.resetFields();
+    setSelectedDispatchId(null);
+  };
+
+  const handleCancelModalOk = async () => {
+    try {
+      const { cancelReason } = await cancelForm.validateFields();
+
+      if (selectedDispatchId === null || selectedDispatchId === undefined) {
+        message.error(t("vehicle_id_is_required"));
+        return;
+      }
+
+      const idString = String(selectedDispatchId);
+      const payload = {
+        comment: cancelReason,
+        canceled: true,
+      };
+
+      const response = await axios.put(
+        `http://localhost:3000/vehicles/${idString}`,
+        payload
+      );
+
+      const updatedVehicleRaw = response?.data
+        ? normalizeVehicleVinData(response.data)
+        : null;
+      const updatedVehicle = (current) => {
+        const base = {
+          ...current,
+          ...(updatedVehicleRaw ?? {}),
+          comment: cancelReason,
+          canceled: true,
+        };
+        if (
+          updatedVehicleRaw?.id === undefined ||
+          updatedVehicleRaw?.id === null
+        ) {
+          base.id = current.id ?? selectedDispatchId;
+        }
+        return base;
+      };
+
+      setDispatches((prev) =>
+        prev.map((item) =>
+          String(item.id) === idString ? updatedVehicle(item) : item
+        )
+      );
+      setFilteredDispatches((prev) =>
+        prev.map((item) =>
+          String(item.id) === idString ? updatedVehicle(item) : item
+        )
+      );
+
+      message.success(t("dispatch_cancelled_successfully"));
+      closeCancelModal();
+    } catch (error) {
+      if (error?.errorFields) {
+        // Validation errors are handled by AntD form; do nothing here.
+        return;
+      }
+      console.error("Failed to cancel dispatch:", error);
+      message.error(t("failed_to_cancel_dispatch"));
+    }
+  };
 
   const openVinModal = (record) => {
     if (savingCell) return;
@@ -857,8 +750,19 @@ const DispatchDashboard = () => {
         message.error(t("vehicle_id_is_required"));
         return;
       }
+
+      let initialValue = value ?? "";
+      if (
+        dataIndex === "route" &&
+        typeof initialValue === "string" &&
+        initialValue.trim() === "" &&
+        typeof record.route === "string"
+      ) {
+        initialValue = record.route;
+      }
+
       setEditingCell({ id: record.id, dataIndex });
-      setEditingValue(value ?? "");
+      setEditingValue(initialValue ?? "");
     },
     [savingCell, t]
   );
@@ -869,15 +773,32 @@ const DispatchDashboard = () => {
     setEditIntentCell(null);
   };
 
-  const handleSave = async (record, dataIndex, value) => {
+  const handleSave = async (
+    record,
+    dataIndex,
+    value,
+    additionalFields = {}
+  ) => {
     if (record?.id === undefined || record?.id === null) {
       message.error(t("vehicle_id_is_required"));
       cancelEditing();
       return;
     }
 
+    // Apply uppercase only to VIN-related fields, not to comments or other text fields
+    const shouldUppercase =
+      dataIndex.startsWith("vin") ||
+      dataIndex.startsWith("make") ||
+      dataIndex.startsWith("model") ||
+      dataIndex.startsWith("year");
+
     const trimmedValue =
-      typeof value === "string" ? value.trim().toUpperCase() : value;
+      typeof value === "string"
+        ? shouldUppercase
+          ? value.trim().toUpperCase()
+          : value.trim()
+        : value;
+
     const originalValue = record[dataIndex];
 
     if (
@@ -896,12 +817,7 @@ const DispatchDashboard = () => {
     let payloadValue;
     if (dataIndex === "price") {
       payloadValue = Number(trimmedValue);
-    } else if (
-      dataIndex.startsWith("vin") ||
-      dataIndex.startsWith("make") ||
-      dataIndex.startsWith("model") ||
-      dataIndex.startsWith("year")
-    ) {
+    } else if (shouldUppercase) {
       payloadValue = trimmedValue || null;
     } else {
       payloadValue = trimmedValue;
@@ -912,9 +828,34 @@ const DispatchDashboard = () => {
       return;
     }
 
+    // Immediate state update for better UX (optimistic update)
+    const optimisticUpdate = {
+      ...record,
+      [dataIndex]: payloadValue,
+      ...additionalFields, // Include additional fields (e.g., auto-updated delivery date)
+    };
+
+    setDispatches((prev) =>
+      prev
+        .map((item) =>
+          String(item.id) === String(record.id) ? optimisticUpdate : item
+        )
+        .filter((item) => item?.canceled !== true)
+    );
+    setFilteredDispatches((prev) =>
+      prev
+        .map((item) =>
+          String(item.id) === String(record.id) ? optimisticUpdate : item
+        )
+        .filter((item) => item?.canceled !== true)
+    );
+
     try {
       setSavingCell(true);
-      const payload = { [dataIndex]: payloadValue };
+      const payload = {
+        [dataIndex]: payloadValue,
+        ...additionalFields, // Include additional fields in the request
+      };
       const response = await axios.put(
         `http://localhost:3000/vehicles/${record.id}`,
         payload
@@ -930,21 +871,42 @@ const DispatchDashboard = () => {
         updatedVehicle.id = record.id;
       }
 
+      // Filter out cancelled vehicles from both states
       setDispatches((prev) =>
-        prev.map((item) =>
-          String(item.id) === String(record.id) ? updatedVehicle : item
-        )
+        prev
+          .map((item) =>
+            String(item.id) === String(record.id) ? updatedVehicle : item
+          )
+          .filter((item) => item?.canceled !== true)
       );
       setFilteredDispatches((prev) =>
-        prev.map((item) =>
-          String(item.id) === String(record.id) ? updatedVehicle : item
-        )
+        prev
+          .map((item) =>
+            String(item.id) === String(record.id) ? updatedVehicle : item
+          )
+          .filter((item) => item?.canceled !== true)
       );
 
       message.success(t("dispatch_updated_successfully"));
     } catch (err) {
       console.error("Failed to update dispatch:", err);
       message.error(t("failed_to_update_dispatch"));
+
+      // Revert optimistic update on error
+      setDispatches((prev) =>
+        prev
+          .map((item) =>
+            String(item.id) === String(record.id) ? record : item
+          )
+          .filter((item) => item?.canceled !== true)
+      );
+      setFilteredDispatches((prev) =>
+        prev
+          .map((item) =>
+            String(item.id) === String(record.id) ? record : item
+          )
+          .filter((item) => item?.canceled !== true)
+      );
     } finally {
       setSavingCell(false);
       cancelEditing();
@@ -952,132 +914,18 @@ const DispatchDashboard = () => {
   };
 
   const renderEditableCell = (dataIndex, options = {}) => {
-    return (value, record, recordIndex) => {
-      const isEditing =
-        editingCell &&
-        String(editingCell.id) === String(record.id) &&
-        editingCell.dataIndex === dataIndex;
-      if (isEditing) {
-        if (options.inputType === "select") {
-          const selectValue =
-            editingValue && editingValue !== "" ? editingValue : undefined;
-
-          return (
-            <Select
-              value={selectValue}
-              onChange={(selectedValue) => {
-                setEditingValue(selectedValue ?? "");
-                handleSave(record, dataIndex, selectedValue ?? "");
-              }}
-              options={options.selectOptions ?? []}
-              loading={options.loading}
-              showSearch
-              optionFilterProp="label"
-              placeholder={options.placeholder}
-              disabled={savingCell}
-              autoFocus
-              onBlur={() => {
-                if (!savingCell) {
-                  cancelEditing();
-                }
-              }}
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toString()
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-            />
-          );
-        }
-
-        return (
-          <Input
-            value={editingValue}
-            onChange={(e) => setEditingValue(e.target.value)}
-            onBlur={() => handleSave(record, dataIndex, editingValue)}
-            onPressEnter={() => handleSave(record, dataIndex, editingValue)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                cancelEditing();
-              }
-            }}
-            autoFocus
-            disabled={savingCell}
-          />
-        );
-      }
-
-      const displayValue = options.renderDisplay
-        ? options.renderDisplay(value, record)
-        : value;
-
-      let displayContent = displayValue;
-      if (
-        displayContent === null ||
-        displayContent === undefined ||
-        (typeof displayContent === "string" && displayContent.trim() === "")
-      ) {
-        displayContent = "-";
-      }
-
-      const extraContent = options.renderExtra
-        ? options.renderExtra(record)
-        : null;
-
-      const cellIdentifierSource =
-        record.id ??
-        record._id ??
-        record.vin ??
-        record.dispatchNumber ??
-        recordIndex;
-      const cellKey = `${String(cellIdentifierSource)}::${dataIndex}`;
-
-      const handleActivation = () => {
-        if (options.readOnly) {
-          return;
-        }
-
-        if (editIntentCell?.cellKey === cellKey) {
-          startEditing(record, dataIndex, value);
-          setEditIntentCell(null);
-          return;
-        }
-
-        if (typeof options.copyOnClick === "function") {
-          const textToCopy = options.copyOnClick(value, record);
-          if (textToCopy !== undefined && textToCopy !== null) {
-            const normalizedText =
-              typeof textToCopy === "string"
-                ? textToCopy
-                : String(textToCopy ?? "");
-            if (normalizedText.trim() !== "") {
-              copyTextToClipboard(normalizedText);
-            }
-          }
-        }
-
-        setEditIntentCell({ cellKey });
-      };
-
-      return (
-        <div
-          role="button"
-          tabIndex={0}
-          data-editable-cell="true"
-          style={{ cursor: options.readOnly ? "not-allowed" : "pointer" }}
-          onClick={handleActivation}
-          onKeyDown={(e) => {
-            if (!options.readOnly && (e.key === "Enter" || e.key === " ")) {
-              handleActivation();
-            }
-          }}
-        >
-          <div>{displayContent}</div>
-          {extraContent}
-        </div>
-      );
-    };
+    return renderEditableCellUtil(dataIndex, options, {
+      editingCell,
+      editingValue,
+      setEditingValue,
+      handleSave,
+      cancelEditing,
+      savingCell,
+      startEditing,
+      copyTextToClipboard,
+      editIntentCell,
+      setEditIntentCell,
+    });
   };
 
   useEffect(() => {
@@ -1094,33 +942,7 @@ const DispatchDashboard = () => {
   }, []);
 
   const renderVehicleInfoCell = (record) => {
-    const primary =
-      [record.make, record.model, record.year]
-        .filter(Boolean)
-        .join(" ")
-        .trim() || "-";
-
-    const additionalVehicles = extractAdditionalVehicles(record);
-    return (
-      <div style={{ cursor: "not-allowed" }} title={t("field_not_editable")}>
-        <div>{primary}</div>
-        {additionalVehicles.map((vehicle, index) => {
-          const label = [vehicle.make, vehicle.model, vehicle.year]
-            .filter(Boolean)
-            .join(" ")
-            .trim();
-          if (!label) return null;
-          return (
-            <div
-              key={`vehicle-info-${vehicle.vin || index}`}
-              style={{ marginTop: 8 }}
-            >
-              {label}
-            </div>
-          );
-        })}
-      </div>
-    );
+    return renderVehicleInfoCellUtil(record, t);
   };
 
   // Handle loading state
@@ -1155,6 +977,7 @@ const DispatchDashboard = () => {
       title: t("vin"),
       dataIndex: "vin",
       key: "vin",
+      width: "15%",
       render: (_, record) => {
         const additionalVehicles = extractAdditionalVehicles(record);
         return (
@@ -1186,12 +1009,14 @@ const DispatchDashboard = () => {
       title: t("Vehicle"),
       dataIndex: "vehicleInfo",
       key: "vehicleInfo",
+      width: "10%",
       render: (_, record) => renderVehicleInfoCell(record),
     },
     {
       title: t("auction"),
       dataIndex: "auction",
       key: "auction",
+      width: "7%",
       sorter: (a, b) => {
         const left = (a.auction ?? "").toString().toLowerCase();
         const right = (b.auction ?? "").toString().toLowerCase();
@@ -1208,9 +1033,10 @@ const DispatchDashboard = () => {
       }),
     },
     {
-      title: t("pickup_date"),
+      title: t("pickup"),
       dataIndex: "pickupDate",
       key: "pickupDate",
+      width: "6.5%",
       sorter: (a, b) => {
         const formats = [moment.ISO_8601, "YYYY-MM-DD", "DD/MM"].map(
           (fmt) => fmt
@@ -1225,12 +1051,16 @@ const DispatchDashboard = () => {
         return left.valueOf() - right.valueOf();
       },
       sortDirections: ["ascend", "descend"],
-      render: renderEditableCell("pickupDate"),
+      render: renderEditableCell("pickupDate", {
+        inputType: "date",
+        placeholder: t("select_pickup_date"),
+      }),
     },
     {
-      title: t("delivery_date"),
+      title: t("delivery"),
       dataIndex: "deliveryDate",
       key: "deliveryDate",
+      width: "6.5%",
       sorter: (a, b) => {
         const formats = [moment.ISO_8601, "YYYY-MM-DD", "DD/MM"].map(
           (fmt) => fmt
@@ -1245,12 +1075,16 @@ const DispatchDashboard = () => {
         return left.valueOf() - right.valueOf();
       },
       sortDirections: ["ascend", "descend"],
-      render: renderEditableCell("deliveryDate"),
+      render: renderEditableCell("deliveryDate", {
+        inputType: "date",
+        placeholder: t("select_delivery_date"),
+      }),
     },
     {
-      title: t("appointment"),
+      title: t("app"),
       dataIndex: "appointment",
       key: "appointment",
+      width: "7%",
       sorter: (a, b) => {
         const appointmentA = a.appointment ?? {};
         const appointmentB = b.appointment ?? {};
@@ -1327,11 +1161,14 @@ const DispatchDashboard = () => {
       dataIndex: "comment",
       key: "comment",
       render: renderEditableCell("comment"),
+      ellipsis: true,
+      width: "8%",
     },
     {
       title: t("warehouse"),
       dataIndex: "warehouse",
       key: "warehouse",
+      width: "10%",
       sorter: (a, b) => {
         const left = (a.warehouse ?? "").toString().toLowerCase();
         const right = (b.warehouse ?? "").toString().toLowerCase();
@@ -1348,9 +1185,10 @@ const DispatchDashboard = () => {
       }),
     },
     {
-      title: t("driver_number"),
+      title: t("number"),
       dataIndex: "driverNumber",
       key: "driverNumber",
+      width: "10%",
       render: renderEditableCell("driverNumber", {
         copyOnClick: (cellValue) =>
           typeof cellValue === "string" ? cellValue : cellValue ?? "",
@@ -1360,6 +1198,7 @@ const DispatchDashboard = () => {
       title: t("route"),
       dataIndex: "route",
       key: "route",
+      width: "10%",
       sorter: (a, b) => {
         const left = (a.route ?? "").toString().toLowerCase();
         const right = (b.route ?? "").toString().toLowerCase();
@@ -1368,30 +1207,111 @@ const DispatchDashboard = () => {
         return 0;
       },
       sortDirections: ["ascend", "descend"],
-      render: renderEditableCell("route"),
+      render: renderEditableCell("route", {
+        renderEditing: ({ record, cancelEditing, handleSave, savingCell }) => {
+          const auctionValue = record?.auction;
+          const isCopartAuction =
+            typeof auctionValue === "string" &&
+            auctionValue.toLowerCase().includes("copart");
+
+          if (isCopartAuction) {
+            const currentValue =
+              editingValue && editingValue !== ""
+                ? editingValue
+                : record?.route ?? undefined;
+
+            const hasCurrent =
+              currentValue === undefined
+                ? true
+                : copartRouteOptions.some(
+                    (option) => option.value === currentValue
+                  );
+            const selectOptions = hasCurrent
+              ? copartRouteOptions
+              : [
+                  { label: currentValue, value: currentValue },
+                  ...copartRouteOptions,
+                ];
+
+            return (
+              <Select
+                value={currentValue}
+                onChange={(selectedValue) => {
+                  setEditingValue(selectedValue ?? "");
+                  handleSave(record, "route", selectedValue ?? "");
+                }}
+                onBlur={() => {
+                  if (!savingCell) {
+                    cancelEditing();
+                  }
+                }}
+                options={selectOptions}
+                showSearch
+                optionFilterProp="label"
+                placeholder={t("select_route")}
+                disabled={savingCell}
+                autoFocus
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              />
+            );
+          }
+
+          return (
+            <Input
+              value={editingValue}
+              onChange={(e) => setEditingValue(e.target.value)}
+              onBlur={() => handleSave(record, "route", editingValue)}
+              onPressEnter={() => handleSave(record, "route", editingValue)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  cancelEditing();
+                }
+              }}
+              autoFocus
+              disabled={savingCell}
+            />
+          );
+        },
+      }),
     },
     {
       title: t("price"),
       dataIndex: "price",
       key: "price",
       render: renderEditableCell("price"),
+      width: "5%",
     },
     {
       title: t("actions"),
       dataIndex: "actions",
       key: "actions",
+      width: "10%",
       render: (_, record) => (
-        <Space>
-          <Dropdown.Button
-            menu={menuProps(record)}
-            onClick={() => handleViewDetails(record.id)}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            width: "100%",
+          }}
+        >
+          <Button
+            danger
+            icon={<DeleteOutlined />}
             size="small"
+            onClick={() => openCancelModal(record.id)}
           >
-            {t("view_details")}
-          </Dropdown.Button>
+            {t("cancel")}
+          </Button>
           <Popconfirm
             title={t("confirm_delete_dispatch")}
-            description={t("delete_dispatch_warning")}
             okText={t("confirm")}
             cancelText={t("cancel")}
             onConfirm={() => handleDeleteDispatch(record)}
@@ -1400,13 +1320,38 @@ const DispatchDashboard = () => {
               {t("delete")}
             </Button>
           </Popconfirm>
-        </Space>
+        </div>
       ),
     },
   ];
 
   return (
     <>
+      <Modal
+        centered
+        title={t("cancel_dispatch")}
+        open={isCancelModalOpen}
+        okText={t("confirm")}
+        cancelText={t("cancel")}
+        onOk={handleCancelModalOk}
+        onCancel={closeCancelModal}
+      >
+        <Form form={cancelForm} layout="vertical">
+          <Form.Item
+            name="cancelReason"
+            label={t("cancellation_reason")}
+            rules={[
+              { required: true, message: t("cancellation_reason_required") },
+            ]}
+          >
+            <Input.TextArea
+              rows={4}
+              placeholder={t("enter_cancellation_reason")}
+              allowClear
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
       <Card
         title={t("dispatch_dashboard")}
         extra={
@@ -1515,7 +1460,7 @@ const DispatchDashboard = () => {
                   "dispatches"
                 )}`,
             }}
-            scroll={{ x: 1800 }}
+            scroll={{ x: 1700 }}
             locale={{
               emptyText: (
                 <Empty
@@ -1531,17 +1476,14 @@ const DispatchDashboard = () => {
       <AddDispatchModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSuccess={refetchDispatches}
-      />
-
-      <CancelDispatchModal
-        open={isCancelModalOpen}
-        onClose={() => {
-          setIsCancelModalOpen(false);
-          setSelectedDispatchId(null);
+        onSuccess={(newDispatch) => {
+          // Add new dispatch to state directly without refetching
+          if (newDispatch && !newDispatch.canceled) {
+            const normalizedDispatch = normalizeVehicleVinData(newDispatch);
+            setDispatches((prev) => [normalizedDispatch, ...prev]);
+            setFilteredDispatches((prev) => [normalizedDispatch, ...prev]);
+          }
         }}
-        dispatchId={selectedDispatchId}
-        onSuccess={handleCancelSuccess}
       />
 
       <AuditLogDrawer
@@ -1678,22 +1620,25 @@ const DispatchDashboard = () => {
                 updatedVehicle.id = vinModalOriginalId;
               }
 
+              // Update state directly without refetching to prevent cancelled rows from reappearing
               setDispatches((prev) =>
-                prev.map((item) =>
-                  String(item.id) === String(vinModalOriginalId)
-                    ? updatedVehicle
-                    : item
-                )
+                prev
+                  .map((item) =>
+                    String(item.id) === String(vinModalOriginalId)
+                      ? updatedVehicle
+                      : item
+                  )
+                  .filter((item) => item?.canceled !== true)
               );
               setFilteredDispatches((prev) =>
-                prev.map((item) =>
-                  String(item.id) === String(vinModalOriginalId)
-                    ? updatedVehicle
-                    : item
-                )
+                prev
+                  .map((item) =>
+                    String(item.id) === String(vinModalOriginalId)
+                      ? updatedVehicle
+                      : item
+                  )
+                  .filter((item) => item?.canceled !== true)
               );
-
-              await refetchDispatches();
 
               message.success(t("dispatch_updated_successfully"));
 

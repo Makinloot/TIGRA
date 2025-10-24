@@ -33,16 +33,11 @@ const CrmLayout = () => {
   };
 
   const menuItems = [
-    {
-      key: "/crm/statistics",
-      icon: <AreaChartOutlined />,
-      label: <Link to="/crm/statistics">{t("statistics")}</Link>,
-    },
-    {
-      key: "/crm/tasks",
-      icon: <CheckCircleOutlined />,
-      label: <Link to="/crm/tasks">{t("my_tasks")}</Link>,
-    },
+    // {
+    //   key: "/crm/tasks",
+    //   icon: <CheckCircleOutlined />,
+    //   label: <Link to="/crm/tasks">{t("my_tasks")}</Link>,
+    // },
     {
       key: "/crm/dispatch",
       icon: <DashboardOutlined />,
@@ -53,30 +48,35 @@ const CrmLayout = () => {
       icon: <DashboardOutlined />,
       label: <Link to="/crm/payment">{t("Payment Dashboard")}</Link>,
     },
-    {
-      key: "/crm/pipeline",
-      icon: <ProjectOutlined />,
-      label: <Link to="/crm/pipeline">{t("dispatch_pipeline")}</Link>,
-    },
-    {
-      key: "/crm/calendar",
-      icon: <CalendarOutlined />,
-      label: <Link to="/crm/calendar">{t("dispatch_calendar")}</Link>,
-    },
-    {
-      key: "/crm/archive",
-      icon: <CheckSquareOutlined />,
-      label: <Link to="/crm/archive">{t("archive_paid")}</Link>,
-    },
+    // {
+    //   key: "/crm/pipeline",
+    //   icon: <ProjectOutlined />,
+    //   label: <Link to="/crm/pipeline">{t("dispatch_pipeline")}</Link>,
+    // },
+    // {
+    //   key: "/crm/calendar",
+    //   icon: <CalendarOutlined />,
+    //   label: <Link to="/crm/calendar">{t("dispatch_calendar")}</Link>,
+    // },
+    // {
+    //   key: "/crm/archive",
+    //   icon: <CheckSquareOutlined />,
+    //   label: <Link to="/crm/archive">{t("archive_paid")}</Link>,
+    // },
     {
       key: "/crm/cancelled",
       icon: <DeleteOutlined />,
       label: <Link to="/crm/cancelled">{t("cancelled_list")}</Link>,
     },
+    // {
+    //   key: "/crm/logistics",
+    //   icon: <GlobalOutlined />,
+    //   label: <Link to="/crm/logistics">{t("logistics_control")}</Link>,
+    // },
     {
-      key: "/crm/logistics",
-      icon: <GlobalOutlined />,
-      label: <Link to="/crm/logistics">{t("logistics_control")}</Link>,
+      key: "/crm/statistics",
+      icon: <AreaChartOutlined />,
+      label: <Link to="/crm/statistics">{t("statistics")}</Link>,
     },
     {
       key: "/crm/admin",

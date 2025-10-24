@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import moment from "moment";
@@ -18,6 +18,7 @@ import {
 } from "antd";
 import { validateVIN } from "../../utils/cmsUtils";
 import DriverAnalyticsPopup from "../DriverAnalyticsPopup";
+import { useCopartLocations } from "../../context/copartLocationsContext";
 
 // TODO-FX: Connect to i18n library.
 const t = (key) =>
@@ -25,7 +26,61 @@ const t = (key) =>
 
 const MAX_VEHICLES = 5;
 
+// USA phone number validator
+const validateUSAPhone = (phone) => {
+  if (!phone) return false;
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.length === 10) return true;
+  if (cleaned.length === 11 && cleaned[0] === "1") return true;
+  return false;
+};
+
+const { Option } = Select;
+
 const AddDispatchModal = ({ open, onClose, onSuccess }) => {
+  const { locations } = useCopartLocations();
+  const routeOptions = useMemo(() => {
+    if (!Array.isArray(locations)) {
+      return [];
+    }
+
+    const seenPairs = new Set();
+    const options = [];
+
+    locations.forEach((stateEntry = {}) => {
+      const stateRaw = stateEntry?.state;
+      const state = typeof stateRaw === "string" ? stateRaw.trim() : "";
+      if (!state) {
+        return;
+      }
+
+      const stateLocations = Array.isArray(stateEntry.locations)
+        ? stateEntry.locations
+        : [];
+
+      stateLocations.forEach((locationEntry = {}) => {
+        const cityRaw = locationEntry?.city ?? locationEntry?.name;
+        const city = typeof cityRaw === "string" ? cityRaw.trim() : "";
+        if (!city) {
+          return;
+        }
+
+        const pairKey = `${state.toUpperCase()}-${city.toUpperCase()}`;
+        if (seenPairs.has(pairKey)) {
+          return;
+        }
+
+        seenPairs.add(pairKey);
+        options.push({
+          key: pairKey,
+          label: `${state} - ${city}`,
+          value: `${state} - ${city}`,
+        });
+      });
+    });
+
+    return options;
+  }, [locations]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [driverStats, setDriverStats] = useState(null);
   const [showDriverAnalytics, setShowDriverAnalytics] = useState(false);
@@ -270,7 +325,16 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
       onClose();
     } catch (error) {
       console.error("Failed to create dispatch:", error);
-      message.error(t("failed_to_create_dispatch"));
+      
+      // Display validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        errors.forEach((err) => message.error(err));
+      } else if (error.response?.data?.message) {
+        message.error(error.response.data.message);
+      } else {
+        message.error(t("failed_to_create_dispatch"));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -484,11 +548,26 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 label={t("pickup_date")}
                 rules={[
                   { required: true, message: t("pickup_date_is_required") },
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      const today = moment().startOf("day");
+                      if (value.isBefore(today)) {
+                        return Promise.reject(
+                          new Error(t("pickup_date_cannot_be_in_the_past"))
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
                 ]}
               >
                 <DatePicker
                   style={{ width: "100%" }}
                   placeholder={t("select_pickup_date")}
+                  disabledDate={(current) => {
+                    return current && current < moment().startOf("day");
+                  }}
                 />
               </Form.Item>
             </Col>
@@ -496,8 +575,21 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
               <Form.Item
                 name="deliveryDate"
                 label={t("delivery_date")}
+                dependencies={["pickupDate"]}
                 rules={[
                   { required: true, message: t("delivery_date_is_required") },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value) return Promise.resolve();
+                      const pickupDate = getFieldValue("pickupDate");
+                      if (pickupDate && value.isBefore(pickupDate)) {
+                        return Promise.reject(
+                          new Error(t("delivery_date_cannot_be_before_pickup_date"))
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
                 ]}
               >
                 <DatePicker
@@ -512,20 +604,60 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 label={t("driver_number")}
                 rules={[
                   { required: true, message: t("driver_number_is_required") },
+                  {
+                    validator: (_, value) => {
+                      if (!value) return Promise.resolve();
+                      if (!validateUSAPhone(value)) {
+                        return Promise.reject(
+                          new Error(t("invalid_usa_phone_number_format"))
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
                 ]}
               >
-                <Input placeholder={t("enter_driver_number")} />
+                <Input
+                  placeholder={t("enter_driver_number")}
+                  maxLength={15}
+                />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="route"
-                label={t("route")}
-                rules={[{ required: true, message: t("route_is_required") }]}
-              >
-                <Input placeholder={t("enter_route_from_to")} />
-              </Form.Item>
-            </Col>
+            <Form.Item
+              noStyle
+              shouldUpdate={(prev, curr) => prev.auction !== curr.auction}
+            >
+              {({ getFieldValue }) => {
+                const selectedAuction = getFieldValue("auction");
+                const isCopartSelected =
+                  typeof selectedAuction === "string" &&
+                  selectedAuction.toLowerCase().includes("copart");
+
+                return (
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="route"
+                      label={t("route")}
+                      rules={[
+                        { required: true, message: t("route_is_required") },
+                      ]}
+                    >
+                      {isCopartSelected ? (
+                        <Select placeholder={t("select_route")} showSearch>
+                          {routeOptions.map((option) => (
+                            <Option key={option.key} value={option.value}>
+                              {option.label}
+                            </Option>
+                          ))}
+                        </Select>
+                      ) : (
+                        <Input placeholder={t("enter_route_from_to")} />
+                      )}
+                    </Form.Item>
+                  </Col>
+                );
+              }}
+            </Form.Item>
           </Row>
 
           <Divider orientation="left">{t("financials")}</Divider>
@@ -534,7 +666,14 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
               <Form.Item
                 name="price"
                 label={t("price")}
-                rules={[{ required: true, message: t("price_is_required") }]}
+                rules={[
+                  { required: true, message: t("price_is_required") },
+                  {
+                    type: "number",
+                    min: 0,
+                    message: t("price_must_be_non_negative"),
+                  },
+                ]}
               >
                 <InputNumber
                   style={{ width: "100%" }}
