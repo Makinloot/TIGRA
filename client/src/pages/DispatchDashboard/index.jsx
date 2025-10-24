@@ -155,17 +155,18 @@ const DispatchDashboard = () => {
   const [auctionOptionsLoading, setAuctionOptionsLoading] = useState(false);
   const [warehouseOptionsLoading, setWarehouseOptionsLoading] = useState(false);
   const [editIntentCell, setEditIntentCell] = useState(null);
-  const { locations } = useCopartLocations();
+  const { locations, iaaLocations } = useCopartLocations();
 
-  const copartRouteOptions = useMemo(() => {
-    if (!Array.isArray(locations)) {
+  // Helper function to build route options from location data
+  const buildRouteOptions = (locationData) => {
+    if (!Array.isArray(locationData)) {
       return [];
     }
 
     const seenPairs = new Set();
     const options = [];
 
-    locations.forEach((stateEntry = {}) => {
+    locationData.forEach((stateEntry = {}) => {
       const stateRaw = stateEntry?.state;
       const state = typeof stateRaw === "string" ? stateRaw.trim() : "";
       if (!state) {
@@ -195,7 +196,10 @@ const DispatchDashboard = () => {
     });
 
     return options;
-  }, [locations]);
+  };
+
+  const copartRouteOptions = useMemo(() => buildRouteOptions(locations), [locations]);
+  const iaaRouteOptions = useMemo(() => buildRouteOptions(iaaLocations), [iaaLocations]);
 
   const handleDeleteDispatch = useMemo(
     () =>
@@ -1214,11 +1218,16 @@ const DispatchDashboard = () => {
       render: renderEditableCell("route", {
         renderEditing: ({ record, cancelEditing, handleSave, savingCell }) => {
           const auctionValue = record?.auction;
-          const isCopartAuction =
-            typeof auctionValue === "string" &&
-            auctionValue.toLowerCase().includes("copart");
+          const auctionLower = typeof auctionValue === "string" 
+            ? auctionValue.toLowerCase() 
+            : "";
+          
+          const isCopartAuction = auctionLower.includes("copart");
+          const isIAAIAuction = auctionLower.includes("iaai") || auctionLower.includes("iaa");
 
-          if (isCopartAuction) {
+          if (isCopartAuction || isIAAIAuction) {
+            const routeOptions = isCopartAuction ? copartRouteOptions : iaaRouteOptions;
+            
             const currentValue =
               editingValue && editingValue !== ""
                 ? editingValue
@@ -1227,14 +1236,14 @@ const DispatchDashboard = () => {
             const hasCurrent =
               currentValue === undefined
                 ? true
-                : copartRouteOptions.some(
+                : routeOptions.some(
                     (option) => option.value === currentValue
                   );
             const selectOptions = hasCurrent
-              ? copartRouteOptions
+              ? routeOptions
               : [
                   { label: currentValue, value: currentValue },
-                  ...copartRouteOptions,
+                  ...routeOptions,
                 ];
 
             return (

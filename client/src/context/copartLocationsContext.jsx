@@ -4,22 +4,34 @@ const CopartLocationsContext = createContext(null);
 
 export const CopartLocationsProvider = ({ children }) => {
   const [locations, setLocations] = useState([]);
+  const [iaaLocations, setIaaLocations] = useState([]);
 
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchAllLocations = async () => {
       try {
-        const response = await fetch("http://localhost:3000/copartLocations");
-        const data = await response.json();
-        setLocations(data);
+        const [copartResponse, iaaResponse] = await Promise.all([
+          fetch("http://localhost:3000/copartLocations"),
+          fetch("http://localhost:3000/iaaLocations"),
+        ]);
+
+        const [copartData, iaaData] = await Promise.all([
+          copartResponse.json(),
+          iaaResponse.json(),
+        ]);
+
+        // Combine both datasets
+        setLocations(copartData);
+        setIaaLocations(iaaData);
       } catch (error) {
-        console.error("Error fetching copart locations:", error);
+        console.error("Error fetching locations:", error);
       }
     };
-    fetchLocations();
+
+    fetchAllLocations();
   }, []);
 
   return (
-    <CopartLocationsContext.Provider value={{ locations }}>
+    <CopartLocationsContext.Provider value={{ locations, iaaLocations }}>
       {children}
     </CopartLocationsContext.Provider>
   );

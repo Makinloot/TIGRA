@@ -12,17 +12,7 @@ const CrmPayment = () => {
       render: (_, record) => {
         const additionalVehicles = extractAdditionalVehicles(record);
         return (
-          <div
-            role="button"
-            tabIndex={0}
-            style={{ cursor: "pointer" }}
-            onClick={() => openVinModal(record)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                openVinModal(record);
-              }
-            }}
-          >
+          <div>
             <div>{record.vin ?? "-"}</div>
             {additionalVehicles.map((vehicle, index) => (
               <div
@@ -128,7 +118,9 @@ const CrmPayment = () => {
         }
 
         const data = await response.json();
-        const filterUnpaid = data.filter((item) => item.payment === false);
+        const filterUnpaid = data.filter(
+          (item) => item.payment === false && item.canceled === false
+        );
         setPaymentData(filterUnpaid);
       } catch (error) {
         console.error("Error loading payment data:", error);

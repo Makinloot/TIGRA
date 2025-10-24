@@ -38,16 +38,18 @@ const validateUSAPhone = (phone) => {
 const { Option } = Select;
 
 const AddDispatchModal = ({ open, onClose, onSuccess }) => {
-  const { locations } = useCopartLocations();
-  const routeOptions = useMemo(() => {
-    if (!Array.isArray(locations)) {
+  const { locations, iaaLocations } = useCopartLocations();
+  
+  // Helper function to build route options from location data
+  const buildRouteOptions = (locationData) => {
+    if (!Array.isArray(locationData)) {
       return [];
     }
 
     const seenPairs = new Set();
     const options = [];
 
-    locations.forEach((stateEntry = {}) => {
+    locationData.forEach((stateEntry = {}) => {
       const stateRaw = stateEntry?.state;
       const state = typeof stateRaw === "string" ? stateRaw.trim() : "";
       if (!state) {
@@ -80,7 +82,13 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
     });
 
     return options;
-  }, [locations]);
+  };
+
+  // Copart route options
+  const copartRouteOptions = useMemo(() => buildRouteOptions(locations), [locations]);
+  
+  // IAA route options
+  const iaaRouteOptions = useMemo(() => buildRouteOptions(iaaLocations), [iaaLocations]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [driverStats, setDriverStats] = useState(null);
   const [showDriverAnalytics, setShowDriverAnalytics] = useState(false);
@@ -325,7 +333,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
       onClose();
     } catch (error) {
       console.error("Failed to create dispatch:", error);
-      
+
       // Display validation errors from backend
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
@@ -381,7 +389,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
         onFinish={handleSubmit}
         initialValues={{ vehicles: [{}] }}
       >
-        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <>
           <Form.List name="vehicles">
             {(fields, { add, remove }) => (
               <>
@@ -391,10 +399,11 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                     style={{
                       border: "1px solid #f0f0f0",
                       borderRadius: 8,
-                      padding: 16,
+                      padding: 8,
+                      marginBottom: 8,
                     }}
                   >
-                    <Row gutter={[16, 16]} align="middle">
+                    <Row gutter={[16, 8]} align="middle">
                       <Col xs={24} sm={index > 0 ? 16 : 24}>
                         <Form.Item
                           name={[field.name, "vin"]}
@@ -425,6 +434,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                           validateTrigger="onBlur"
                         >
                           <Input
+                            size="large"
                             placeholder={t("enter_17_character_vin")}
                             onChange={(e) =>
                               handleVehicleVinChange(e.target.value, field.name)
@@ -462,14 +472,14 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                         </Col>
                       )}
                     </Row>
-                    <Row gutter={[16, 16]}>
+                    <Row gutter={[16, 8]} style={{ marginBottom: 12 }}>
                       <Col xs={24} sm={8}>
                         <Form.Item
                           name={[field.name, "make"]}
                           fieldKey={[field.fieldKey, "make"]}
                           label={t("make")}
                         >
-                          <Input disabled />
+                          <Input size="large" disabled />
                         </Form.Item>
                       </Col>
                       <Col xs={24} sm={8}>
@@ -478,7 +488,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                           fieldKey={[field.fieldKey, "model"]}
                           label={t("model")}
                         >
-                          <Input disabled />
+                          <Input size="large" disabled />
                         </Form.Item>
                       </Col>
                       <Col xs={24} sm={8}>
@@ -487,31 +497,30 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                           fieldKey={[field.fieldKey, "year"]}
                           label={t("year")}
                         >
-                          <Input disabled />
+                          <Input size="large" disabled />
                         </Form.Item>
                       </Col>
                     </Row>
                   </div>
                 ))}
-                <Button
-                  type="dashed"
-                  onClick={() => add({})}
-                  disabled={fields.length >= MAX_VEHICLES}
-                  block
-                  title={
-                    fields.length >= MAX_VEHICLES
-                      ? t("vehicle_limit_reached")
-                      : undefined
-                  }
-                >
-                  {t("add_another_vehicle")}
-                </Button>
+                <div style={{ margin: "12px 0 16px" }}>
+                  <Button
+                    onClick={() => add({})}
+                    disabled={fields.length >= MAX_VEHICLES}
+                    title={
+                      fields.length >= MAX_VEHICLES
+                        ? t("vehicle_limit_reached")
+                        : undefined
+                    }
+                  >
+                    {t("add_another_vehicle")}
+                  </Button>
+                </div>
               </>
             )}
           </Form.List>
 
-          <Divider orientation="left">{t("logistics_details")}</Divider>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 8]} style={{ marginBottom: 12 }}>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="auction"
@@ -519,6 +528,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 rules={[{ required: true, message: t("auction_is_required") }]}
               >
                 <Select
+                  size="large"
                   placeholder={t("select_auction")}
                   loading={!auctionOptions.length}
                   options={auctionOptions}
@@ -535,6 +545,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 ]}
               >
                 <Select
+                  size="large"
                   placeholder={t("select_warehouse")}
                   loading={!warehouseOptions.length}
                   options={warehouseOptions}
@@ -563,6 +574,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 ]}
               >
                 <DatePicker
+                  size="large"
                   style={{ width: "100%" }}
                   placeholder={t("select_pickup_date")}
                   disabledDate={(current) => {
@@ -571,33 +583,56 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                name="deliveryDate"
-                label={t("delivery_date")}
-                dependencies={["pickupDate"]}
-                rules={[
-                  { required: true, message: t("delivery_date_is_required") },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value) return Promise.resolve();
-                      const pickupDate = getFieldValue("pickupDate");
-                      if (pickupDate && value.isBefore(pickupDate)) {
-                        return Promise.reject(
-                          new Error(t("delivery_date_cannot_be_before_pickup_date"))
-                        );
-                      }
-                      return Promise.resolve();
-                    },
-                  }),
-                ]}
-              >
-                <DatePicker
-                  style={{ width: "100%" }}
-                  placeholder={t("select_delivery_date")}
-                />
-              </Form.Item>
-            </Col>
+            <Form.Item
+              noStyle
+              shouldUpdate={(prev, curr) => prev.pickupDate !== curr.pickupDate}
+            >
+              {({ getFieldValue }) => {
+                const pickupDate = getFieldValue("pickupDate");
+                
+                return (
+                  <Col xs={24} sm={12}>
+                    <Form.Item
+                      name="deliveryDate"
+                      label={t("delivery_date")}
+                      dependencies={["pickupDate"]}
+                      rules={[
+                        { required: true, message: t("delivery_date_is_required") },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value) return Promise.resolve();
+                            const pickupDate = getFieldValue("pickupDate");
+                            if (pickupDate && value.isBefore(pickupDate)) {
+                              return Promise.reject(
+                                new Error(
+                                  t("delivery_date_cannot_be_before_pickup_date")
+                                )
+                              );
+                            }
+                            return Promise.resolve();
+                          },
+                        }),
+                      ]}
+                    >
+                      <DatePicker
+                        size="large"
+                        style={{ width: "100%" }}
+                        placeholder={t("select_delivery_date")}
+                        disabled={!pickupDate}
+                        disabledDate={(current) => {
+                          if (!current) return false;
+                          // Disable dates before pickup date
+                          if (pickupDate && current.isBefore(pickupDate.startOf("day"))) {
+                            return true;
+                          }
+                          return false;
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                );
+              }}
+            </Form.Item>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="driverNumber"
@@ -617,10 +652,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                   },
                 ]}
               >
-                <Input
-                  placeholder={t("enter_driver_number")}
-                  maxLength={15}
-                />
+                <Input size="large" placeholder={t("enter_driver_number")} maxLength={15} />
               </Form.Item>
             </Col>
             <Form.Item
@@ -629,9 +661,13 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             >
               {({ getFieldValue }) => {
                 const selectedAuction = getFieldValue("auction");
-                const isCopartSelected =
-                  typeof selectedAuction === "string" &&
-                  selectedAuction.toLowerCase().includes("copart");
+                const auctionLower = typeof selectedAuction === "string" 
+                  ? selectedAuction.toLowerCase() 
+                  : "";
+                
+                const isCopartSelected = auctionLower.includes("copart");
+                const isIAAISelected = auctionLower.includes("iaai") || auctionLower.includes("iaa");
+                const hasAuctionSelected = selectedAuction && selectedAuction.trim() !== "";
 
                 return (
                   <Col xs={24} sm={12}>
@@ -643,15 +679,27 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                       ]}
                     >
                       {isCopartSelected ? (
-                        <Select placeholder={t("select_route")} showSearch>
-                          {routeOptions.map((option) => (
+                        <Select size="large" placeholder={t("select_route")} showSearch>
+                          {copartRouteOptions.map((option) => (
+                            <Option key={option.key} value={option.value}>
+                              {option.label}
+                            </Option>
+                          ))}
+                        </Select>
+                      ) : isIAAISelected ? (
+                        <Select size="large" placeholder={t("select_route")} showSearch>
+                          {iaaRouteOptions.map((option) => (
                             <Option key={option.key} value={option.value}>
                               {option.label}
                             </Option>
                           ))}
                         </Select>
                       ) : (
-                        <Input placeholder={t("enter_route_from_to")} />
+                        <Input 
+                          size="large"
+                          placeholder={t("enter_route_from_to")} 
+                          disabled={!hasAuctionSelected}
+                        />
                       )}
                     </Form.Item>
                   </Col>
@@ -660,8 +708,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             </Form.Item>
           </Row>
 
-          <Divider orientation="left">{t("financials")}</Divider>
-          <Row gutter={[16, 16]}>
+          <Row gutter={[16, 8]}>
             <Col xs={24} sm={12}>
               <Form.Item
                 name="price"
@@ -676,6 +723,7 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
                 ]}
               >
                 <InputNumber
+                  size="large"
                   style={{ width: "100%" }}
                   placeholder={t("enter_price")}
                   prefix="$"
@@ -686,11 +734,11 @@ const AddDispatchModal = ({ open, onClose, onSuccess }) => {
             </Col>
             <Col xs={24}>
               <Form.Item name="comment" label={t("comment")}>
-                <Input.TextArea placeholder={t("enter_comment")} rows={3} />
+                <Input.TextArea size="large" placeholder={t("enter_comment")} rows={3} />
               </Form.Item>
             </Col>
           </Row>
-        </Space>
+        </>
       </Form>
 
       <DriverAnalyticsPopup

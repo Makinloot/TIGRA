@@ -4,6 +4,9 @@ import vehicleRouter from "./routes/vehicleRouter.js";
 import warehousesRouter from "./routes/warehousesRouter.js";
 import auctionsRouter from "./routes/auctionsRouter.js";
 import copartLocationsRouter from "./routes/copartLocationsRouter.js";
+import iaaLocationsRouter from "./routes/iaaLocationsRouter.js";
+import telegramBotRouter from "./routes/telegramBotRouter.js";
+
 const app = express();
 
 app.set("trust proxy", 1);
@@ -18,5 +21,7 @@ app.use("/vehicles", vehicleRouter);
 app.use("/warehouses", warehousesRouter);
 app.use("/auctions", auctionsRouter);
 app.use("/copartLocations", copartLocationsRouter);
+app.use("/iaaLocations", iaaLocationsRouter);
+app.use("/tigra-bot", telegramBotRouter);
 
 export { app };
