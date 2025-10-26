@@ -6,6 +6,8 @@ import auctionsRouter from "./routes/auctionsRouter.js";
 import copartLocationsRouter from "./routes/copartLocationsRouter.js";
 import iaaLocationsRouter from "./routes/iaaLocationsRouter.js";
 import telegramBotRouter from "./routes/telegramBotRouter.js";
+import openPhoneRouter from "./routes/openPhoneRouter.js";
+import statisticsRouter from "./routes/statisticsRouter.js";
 
 const app = express();
 
@@ -23,5 +25,6 @@ app.use("/auctions", auctionsRouter);
 app.use("/copartLocations", copartLocationsRouter);
 app.use("/iaaLocations", iaaLocationsRouter);
 app.use("/tigra-bot", telegramBotRouter);
-
+app.use("/open-phone", openPhoneRouter);
+app.use("/statistics", statisticsRouter);
 export { app };

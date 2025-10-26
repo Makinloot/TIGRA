@@ -40,6 +40,7 @@ import { themeConfig, darkThemeConfig } from "./theme/themeConfig";
 import { topAuctions, keyMetrics } from "./mocks/_mockData";
 import "./App.css";
 import CrmPayment from "./pages/CrmPayment";
+import CrmOfferDispatch from "./pages/CrmOfferDispatch";
 
 function App() {
   const [isDark, setIsDark] = useState(false);
@@ -213,6 +214,15 @@ function App() {
                     path="cancelled"
                     element={
                       <CrmCancelledPage
+                        isDark={isDark}
+                        onThemeToggle={handleThemeToggle}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/crm/offer-dispatch"
+                    element={
+                      <CrmOfferDispatch
                         isDark={isDark}
                         onThemeToggle={handleThemeToggle}
                       />

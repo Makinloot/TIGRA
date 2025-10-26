@@ -68,6 +68,11 @@ const CrmLayout = () => {
       icon: <DeleteOutlined />,
       label: <Link to="/crm/cancelled">{t("cancelled_list")}</Link>,
     },
+    {
+      key: "/crm/offer-dispatch",
+      icon: <MessageOutlined />,
+      label: <Link to="/crm/offer-dispatch">{t("offer_dispatch")}</Link>,
+    },
     // {
     //   key: "/crm/logistics",
     //   icon: <GlobalOutlined />,
